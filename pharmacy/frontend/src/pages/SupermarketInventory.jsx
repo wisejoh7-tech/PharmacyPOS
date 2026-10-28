@@ -122,7 +122,7 @@ const SupermarketInventory = () => {
   const handleExportCSV = () => {
     if (inventoryData.length === 0) return;
 
-    const headers = ['Product Name', 'SKU', 'Category', 'In Stock', 'Unit Price ($)', 'Expiry Date', 'Status'];
+    const headers = ['Product Name', 'SKU', 'Category', 'In Stock', 'Unit Price (₦)', 'Expiry Date', 'Status'];
     const rows = filteredData.map(item => [
       item.name || '',
       `SKU-${item.id}`,
@@ -256,7 +256,7 @@ const SupermarketInventory = () => {
           </div>
           <div className="flex items-baseline gap-1">
             <p className="text-lg font-black text-slate-900 tabular-nums">
-              ${loading ? "..." : inventoryData.reduce((acc, item) => acc + (parseFloat(item.unit_price) * (item.stock || 0)), 0).toLocaleString()}
+              ₦{loading ? "..." : inventoryData.reduce((acc, item) => acc + (parseFloat(item.unit_price) * (item.stock || 0)), 0).toLocaleString()}
             </p>
             <p className="text-[8px] font-bold text-blue-500 uppercase">Assets</p>
           </div>
@@ -339,7 +339,7 @@ const SupermarketInventory = () => {
                           {item.stock}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-right font-black text-slate-900 text-[11px] tabular-nums">${parseFloat(item.unit_price).toFixed(2)}</td>
+                      <td className="px-5 py-3 text-right font-black text-slate-900 text-[11px] tabular-nums">₦{parseFloat(item.unit_price).toFixed(2)}</td>
                       <td className="px-5 py-3 text-center min-w-[100px]">
                         <span className={`text-[10px] font-black tabular-nums ${isExpiring ? 'text-red-500 animate-pulse' : 'text-slate-500'}`}>
                           {item.expiry_date || "N/A"}

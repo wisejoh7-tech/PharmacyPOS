@@ -234,7 +234,7 @@ const StaffEducation = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Staff / Trainee Name <span className="text-red-500">*</span>
+                  Staff Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -255,10 +255,10 @@ const StaffEducation = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
                 >
-                  <option value="Resident">Resident</option>
-                  <option value="Intern">Intern</option>
-                  <option value="Medical Student">Medical Student</option>
-                  <option value="Fellow">Fellow</option>
+                  <option value="Staff">Staff</option>
+                  <option value="Sales Rep">Sales Rep</option>
+                  <option value="Medical Student">Pharmacist</option>
+                  <option value="Fellow">Nurse</option>
                 </select>
               </div>
 

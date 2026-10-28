@@ -263,17 +263,24 @@ const PointOfSales = () => {
                   if (e.key === 'Enter') {
                     const code = searchTerm.trim();
                     if (!code) return;
-                    const found = products.find(p => p.barcode === code || p.sku === code);
+                    const found = products.find(p => (p.barcode && p.barcode.toString().trim() === code) || (p.sku && p.sku.toString().trim() === code) || (p.name && p.name.toLowerCase().trim() === code.toLowerCase()));
                     if (found) {
+                      const existingInCart = cart.find(i => i.id === found.id);
+                      const currentQty = (existingInCart ? existingInCart.quantity : 0) + 1;
                       addToCart(found);
                       setLastScanned({
+                        id: found.id,
                         name: found.name,
-                        price: found.unit_price,
+                        barcode: found.barcode || found.sku || code,
+                        price: parseFloat(found.unit_price || 0),
+                        quantity: currentQty,
+                        totalAmount: parseFloat(found.unit_price || 0) * currentQty,
                         time: Date.now()
                       });
+                      toast.success(`Scanned: ${found.name} | Qty: ${currentQty} | Total: ₦${(parseFloat(found.unit_price || 0) * currentQty).toFixed(2)}`);
                       setSearchTerm('');
                     } else {
-                      toast.error(`Barcode "${code}" not found`);
+                      toast.error(`Barcode "${code}" not found in inventory`);
                     }
                   }
                 }}
@@ -282,30 +289,53 @@ const PointOfSales = () => {
               />
               <button
                 onClick={handleMobileScan}
-                className="p-3 bg-white text-emerald-600 hover:text-emerald-700 border-l border-slate-100 transition-colors shrink-0"
+                className="p-3 bg-white text-emerald-600 hover:text-emerald-700 border-l border-slate-100 transition-colors shrink-0 flex items-center gap-1 font-bold text-[11px]"
                 title="Scan with Camera"
               >
                 <FaCamera className="text-sm" />
+                <span className="hidden sm:inline">Camera Scan</span>
               </button>
             </div>
 
             <div className="flex items-center gap-3">
+               <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-[11px] font-black uppercase tracking-wider">
+                <FaBarcode className="text-emerald-600 animate-pulse" /> Scanner Connected
+               </span>
                <Link to="/sales/return" className="btn-pharmacy text-[12px] py-1.5 px-3 uppercase tracking-widest text-red-500 border-red-200">
                 <FaUndo /> Returns
               </Link>
             </div>
           </div>
 
-          {lastScanned && (Date.now() - lastScanned.time < 3000) && (
-            <div className="bg-emerald-600 text-white px-6 py-4 rounded-2xl flex items-center justify-between animate-in zoom-in duration-300 shadow-xl shadow-emerald-100 ring-4 ring-emerald-50">
+          {lastScanned && (Date.now() - lastScanned.time < 8000) && (
+            <div className="bg-emerald-600 text-white px-6 py-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in zoom-in duration-300 shadow-xl shadow-emerald-100 ring-4 ring-emerald-50">
                <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                  <FaBarcode className="text-xl animate-pulse" />
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+                  <FaBarcode className="text-2xl animate-pulse" />
                 </div>
                 <div>
-                  <span className="text-[14px] font-black uppercase tracking-tight block">{lastScanned.name}</span>
-                  <span className="text-[11px] font-bold text-emerald-100 uppercase tracking-widest">Added to cart</span>
+                  <span className="text-[15px] font-black uppercase tracking-tight block">{lastScanned.name}</span>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-emerald-100 uppercase tracking-widest mt-0.5">
+                    <span>Barcode: {lastScanned.barcode || 'N/A'}</span>
+                    <span>•</span>
+                    <span>Qty in Cart: <strong className="text-white text-xs">{lastScanned.quantity || 1}</strong></span>
+                    <span>•</span>
+                    <span>Unit Price: ₦{parseFloat(lastScanned.price || 0).toFixed(2)}</span>
+                  </div>
                 </div>
+              </div>
+              <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                <div className="text-right">
+                  <span className="text-2xl font-black tabular-nums block">₦{parseFloat(lastScanned.totalAmount || lastScanned.price || 0).toFixed(2)}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200">Total Amount</span>
+                </div>
+                <button
+                  onClick={() => window.print()}
+                  className="px-3.5 py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                  title="Print Drug Barcode Tag / Receipt"
+                >
+                  <FaPrint /> Print Tag
+                </button>
               </div>
             </div>
           )}
@@ -350,7 +380,7 @@ const PointOfSales = () => {
                       <span className={`text-[12px] font-black tabular-nums ${product.stock <= 5 ? 'text-red-500' : 'text-slate-900'}`}>{product.stock}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className="text-[12px] font-black text-slate-900 tabular-nums">${parseFloat(product.unit_price).toFixed(2)}</span>
+                      <span className="text-[12px] font-black text-slate-900 tabular-nums">₦{parseFloat(product.unit_price).toFixed(2)}</span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button onClick={() => addToCart(product)} className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-lg transition-all shadow-sm">
@@ -407,7 +437,7 @@ const PointOfSales = () => {
                     <span className="text-[11px] font-black w-4 text-center tabular-nums">{item.quantity}</span>
                     <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 rounded-md bg-white border border-slate-100 flex items-center justify-center text-[12px] text-slate-400 hover:text-emerald-500"><FaPlus /></button>
                   </div>
-                  <span className="text-[12px] font-black text-slate-900 tabular-nums">${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                  <span className="text-[12px] font-black text-slate-900 tabular-nums">₦{(item.unitPrice * item.quantity).toFixed(2)}</span>
                 </div>
               </div>
             ))
@@ -417,7 +447,7 @@ const PointOfSales = () => {
         <div className="p-4 bg-white border-t border-slate-100 space-y-2">
           <div className="flex justify-between text-[12px] font-bold text-slate-400 uppercase tracking-widest">
             <span>Total (+VAT)</span>
-            <span className="text-emerald-600 font-black text-sm tabular-nums">${totalAmount.toFixed(2)}</span>
+            <span className="text-emerald-600 font-black text-sm tabular-nums">₦{totalAmount.toFixed(2)}</span>
           </div>
           <button
             onClick={handleCheckout}
@@ -439,7 +469,7 @@ const PointOfSales = () => {
             <div className="space-y-2 text-[12px] mb-4 pb-4 border-b border-dashed">
               <div className="flex justify-between"><span>TX ID:</span><span className="font-black">{lastSale.id}</span></div>
               <div className="flex justify-between"><span>Seller:</span><span className="font-black">{lastSale.sellerName}</span></div>
-              <div className="flex justify-between"><span>Total:</span><span className="font-black">${lastSale.total.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span>Total:</span><span className="font-black">₦{lastSale.total.toFixed(2)}</span></div>
             </div>
             <div className="mb-4 text-[12px] max-h-32 overflow-y-auto pr-1">
               <div className="font-bold border-b border-slate-100 pb-1 mb-2 text-center">Items</div>
@@ -447,7 +477,7 @@ const PointOfSales = () => {
                 {lastSale.items && lastSale.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between text-slate-600">
                     <span className="truncate pr-2">{item.name} x{item.quantity}</span>
-                    <span className="font-black shrink-0">${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                    <span className="font-black shrink-0">₦{(item.unitPrice * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>

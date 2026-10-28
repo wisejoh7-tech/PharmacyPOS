@@ -1,6 +1,6 @@
 {
   "appId": "com.josiah.pharmacy",
-  "appName": "josiah pharmacy and store",
+  "appName": "New Light Medicine and Store",
   "webDir": "dist",
   "plugins": {
     "BarcodeScanner": {

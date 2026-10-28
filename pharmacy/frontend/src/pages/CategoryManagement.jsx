@@ -215,26 +215,26 @@ const CategoryManagement = () => {
 
         {/* Category Form */}
         {canManageCategories && (
-          <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="text-xs font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                <FaTags className="text-emerald-500" />
+          <div className="lg:col-span-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h2 className="text-[11px] font-black text-slate-900 uppercase tracking-tight flex items-center gap-1.5">
+                <FaTags className="text-emerald-500 text-xs" />
                 {editingCategory ? 'Edit Category' : 'Create New Category'}
               </h2>
               {editingCategory && (
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-wider"
+                  className="text-[9px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-wider"
                 >
                   Cancel
                 </button>
               )}
             </div>
 
-            <form onSubmit={handleSaveCategory} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest">
+            <form onSubmit={handleSaveCategory} className="space-y-3 text-[11px]">
+              <div className="space-y-1">
+                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">
                   Category Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -242,30 +242,33 @@ const CategoryManagement = () => {
                   placeholder="e.g., Antibiotics, Beverages..."
                   value={categoryName}
                   onChange={(e) => setCategoryName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-50 focus:border-emerald-500 outline-none transition-all"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold focus:ring-2 focus:ring-emerald-50 focus:border-emerald-500 outline-none transition-all"
+                  style={{ fontSize: '11px' }}
                   required
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <div className="space-y-1">
+                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">
                   Target Inventory Type
                 </label>
                 <select
                   value={categoryType}
                   onChange={(e) => setCategoryType(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-50 focus:border-emerald-500 outline-none transition-all cursor-pointer"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold focus:ring-2 focus:ring-emerald-50 focus:border-emerald-500 outline-none transition-all cursor-pointer"
+                  style={{ fontSize: '11px' }}
                 >
                   <option value="Pharmacy">Pharmacy Stock</option>
                   <option value="Supermarket">Supermarket Hub</option>
                 </select>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1">
                 <button
                   type="submit"
                   disabled={saving}
-                  className="w-full btn-pharmacy py-2.5 text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full btn-pharmacy py-2 text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm"
+                  style={{ fontSize: '10px' }}
                 >
                   {editingCategory ? (
                     <>Update Category</>

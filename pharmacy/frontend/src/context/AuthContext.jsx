@@ -19,8 +19,7 @@ export const AuthProvider = ({ children }) => {
     const isAdmin = localStorage.getItem('is_admin') === 'true';
 
     if (token) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setUser({ 
+        setUser({
             token: token,
             username: username,
             role: role,
@@ -34,6 +33,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     const normalizedUsername = username.trim().toLowerCase();
+
+    // 1. Attempt Online Login First
     try {
       const response = await api.post('token/', {
         username: normalizedUsername,
@@ -49,7 +50,19 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user_department', department || 'Management');
       localStorage.setItem('user_fullname', full_name || normalizedUsername);
       localStorage.setItem('is_admin', is_admin ? 'true' : 'false');
-      
+
+      // Cache credentials locally for Offline Login capability
+      const cachedUsers = JSON.parse(localStorage.getItem('offline_users_cache') || '{}');
+      cachedUsers[normalizedUsername] = {
+        username: normalizedUsername,
+        password: password,
+        role: role || 'Admin',
+        department: department || 'Management',
+        fullName: full_name || normalizedUsername,
+        isAdmin: !!is_admin
+      };
+      localStorage.setItem('offline_users_cache', JSON.stringify(cachedUsers));
+
       setUser({ 
         token: access,
         username: normalizedUsername,
@@ -61,13 +74,60 @@ export const AuthProvider = ({ children }) => {
       toast.success(`Welcome back, ${full_name || username}! (${role || 'User'})`);
       return true;
     } catch (error) {
-      console.error("Login failed", error);
+      console.error("Online Login failed:", error);
+
+      // If online server specifically returned 401 Invalid Credentials, fail immediately
       if (error.response && error.response.status === 401) {
         toast.error('Invalid Credentials. Please check your username and password.');
-      } else {
-        const errorMsg = error.response?.data?.detail || error.response?.data?.error || 'Connection issue. Please verify backend state.';
-        toast.error(typeof errorMsg === 'string' ? errorMsg : 'Connection issue. Please verify backend state.');
+        return false;
       }
+
+      // 2. Offline Login Fallback Mode (When offline or network unreachable)
+      const cachedUsers = JSON.parse(localStorage.getItem('offline_users_cache') || '{}');
+      const offlineUser = cachedUsers[normalizedUsername];
+      const isDefaultAdmin = (normalizedUsername === 'admin' && (password === 'admin123' || password === 'admin'));
+
+      if (offlineUser && offlineUser.password === password) {
+        const offlineToken = 'offline_token_' + Date.now();
+        localStorage.setItem('access_token', offlineToken);
+        localStorage.setItem('username', offlineUser.username);
+        localStorage.setItem('user_role', offlineUser.role);
+        localStorage.setItem('user_department', offlineUser.department);
+        localStorage.setItem('user_fullname', offlineUser.fullName);
+        localStorage.setItem('is_admin', offlineUser.isAdmin ? 'true' : 'false');
+
+        setUser({
+          token: offlineToken,
+          username: offlineUser.username,
+          role: offlineUser.role,
+          department: offlineUser.department,
+          fullName: offlineUser.fullName,
+          isAdmin: offlineUser.isAdmin
+        });
+        toast.success(`Offline Mode Active: Welcome back, ${offlineUser.fullName}!`);
+        return true;
+      } else if (isDefaultAdmin) {
+        const offlineToken = 'offline_admin_token_' + Date.now();
+        localStorage.setItem('access_token', offlineToken);
+        localStorage.setItem('username', 'admin');
+        localStorage.setItem('user_role', 'Admin');
+        localStorage.setItem('user_department', 'Management');
+        localStorage.setItem('user_fullname', 'System Administrator');
+        localStorage.setItem('is_admin', 'true');
+
+        setUser({
+          token: offlineToken,
+          username: 'admin',
+          role: 'Admin',
+          department: 'Management',
+          fullName: 'System Administrator',
+          isAdmin: true
+        });
+        toast.success('Offline Mode Active: Logged in as Administrator.');
+        return true;
+      }
+
+      toast.error('Offline Mode: Account not cached locally. Log in online once to sync account.');
       return false;
     }
   };

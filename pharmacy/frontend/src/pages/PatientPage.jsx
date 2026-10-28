@@ -406,7 +406,7 @@ const PatientPage = () => {
                                                  <div className="flex justify-between items-end">
                                                      <div className="space-y-1">
                                                          <p className="text-[10px] font-extrabold text-slate-400 uppercase">Total Amount</p>
-                                                         <p className="text-[14px] font-black text-emerald-600 tabular-nums">${sale.total_amount}</p>
+                                                         <p className="text-[14px] font-black text-emerald-600 tabular-nums">₦{sale.total_amount}</p>
                                                      </div>
                                                      <div className="text-right">
                                                          <p className="text-[10px] font-extrabold text-slate-400 uppercase">Staff</p>

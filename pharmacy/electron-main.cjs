@@ -8,7 +8,7 @@ function createWindow() {
     height: 850,
     minWidth: 900,
     minHeight: 600,
-    title: 'Josiah Pharmacy & Store Management System',
+    title: 'New Light Medicine and Store',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

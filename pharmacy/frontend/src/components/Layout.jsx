@@ -138,7 +138,7 @@ const Layout = ({ children }) => {
                 : 'bg-amber-50 text-amber-700 border-amber-200'
             }`}>
               <span className={`w-2 h-2 rounded-full ${apiConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-              <span className="hidden sm:inline uppercase tracking-wider">{apiConnected ? 'System Online' : 'Connecting...'}</span>
+              <span className="hidden sm:inline uppercase tracking-wider">{apiConnected ? 'Online' : 'Connecting...'}</span>
             </div>
 
             {/* User Profile Pill */}

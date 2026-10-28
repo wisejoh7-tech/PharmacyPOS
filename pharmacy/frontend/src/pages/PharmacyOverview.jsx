@@ -18,7 +18,7 @@ const PharmacyOverview = () => {
             {/* Total Sales Card */}
             <div className="bg-[#ecfdf5] border border-[#d1fae5] rounded-2xl p-4 shadow-sm">
                <span className="block text-[11px] font-bold text-[#475569] tracking-widest uppercase mb-2">TOTAL SALES</span>
-               <p className="text-[22px] font-black text-[#0f172a] mb-2">$1,240.50</p>
+               <p className="text-[22px] font-black text-[#0f172a] mb-2">₦1,240.50</p>
                <div className="flex items-center gap-1.5 text-[#10b981] text-[12px] font-extrabold">
                   <span className="text-[14px]">↗</span> +12.5%
                </div>
@@ -155,7 +155,7 @@ const PharmacyOverview = () => {
                         <p className="text-[12px] text-[#64748b] font-medium leading-none">2 mins ago • Card Payment</p>
                      </div>
                   </div>
-                  <span className="font-black text-[#0f172a] text-[16px]">$45.00</span>
+                  <span className="font-black text-[#0f172a] text-[16px]">₦45.00</span>
                </div>
 
                {/* Transaction 2 */}
@@ -169,7 +169,7 @@ const PharmacyOverview = () => {
                         <p className="text-[12px] text-[#64748b] font-medium leading-none">15 mins ago • Cash</p>
                      </div>
                   </div>
-                  <span className="font-black text-[#0f172a] text-[16px]">$12.50</span>
+                  <span className="font-black text-[#0f172a] text-[16px]">₦12.50</span>
                </div>
 
                {/* Transaction 3 */}
@@ -183,7 +183,7 @@ const PharmacyOverview = () => {
                         <p className="text-[12px] text-[#64748b] font-medium leading-none">1 hour ago • Card Payment</p>
                      </div>
                   </div>
-                  <span className="font-black text-[#0f172a] text-[16px]">$128.90</span>
+                  <span className="font-black text-[#0f172a] text-[16px]">₦128.90</span>
                </div>
 
             </div>

@@ -208,7 +208,7 @@ const AddNewDrugs = () => {
 
          <header className="flex items-center justify-between px-2">
             <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[12px] font-black text-slate-400 hover:text-emerald-500 transition-colors uppercase tracking-widest">
-               <FaArrowLeft className="w-2.5 h-2.5" /> Close Entry
+               <FaArrowLeft className="w-2.5 h-2.5" /> Back
             </button>
             <Link to="/sales/return" className="text-[12px] font-black text-red-400 hover:text-red-500 transition-colors uppercase tracking-widest flex items-center gap-2">
                <FaUndo className="w-2.5 h-2.5" /> Adjustments
@@ -223,14 +223,14 @@ const AddNewDrugs = () => {
                   </div>
                   <div>
                      <h1 className="text-xl font-black text-slate-900 tracking-tight uppercase font-outfit leading-none">{isEdit ? 'Modify Medication' : 'Add Medication'}</h1>
-                     <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mt-1.5">{isEdit ? 'Updating pharmaceutical vault' : 'Registry of clinical compound'}</p>
+                     <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mt-1.5">{isEdit ? 'Updating pharmaceutical vault' : ''}</p>
                   </div>
                </div>
 
                <div className="flex gap-3">
                   <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-slate-50 text-slate-400 font-black text-[12px] uppercase tracking-widest hover:bg-slate-100 transition-all">Cancel</button>
                   <button onClick={handleSave} disabled={loading} className="bg-emerald-500 text-white font-black px-6 py-2 rounded-lg text-[12px] uppercase tracking-widest shadow-none border border-emerald-500 hover:bg-emerald-600 transition-all min-w-[140px]">
-                     {loading ? "PROCESSING..." : (isEdit ? "COMMIT UPDATE" : "AUTHORIZE ENTRY")}
+                     {loading ? "PROCESSING..." : (isEdit ? "COMMIT UPDATE" : "AUTHORIZE")}
                   </button>
                </div>
             </div>
@@ -257,7 +257,7 @@ const AddNewDrugs = () => {
                   </div>
 
                   <div className="space-y-2">
-                     <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Generic Formula</label>
+                     <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Generic Name</label>
                      <input
                         type="text"
                         name="generic_name"
@@ -354,7 +354,7 @@ const AddNewDrugs = () => {
                         />
                      </div>
                      <div className="space-y-2">
-                        <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Price ($) <span className="text-red-500">*</span></label>
+                        <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Price (₦) <span className="text-red-500">*</span></label>
                         <input
                            type="number"
                            step="0.01"

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import viewsets, status, serializers
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -202,7 +202,7 @@ class SystemSettingsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         try:
             if not SystemSettings.objects.exists():
-                SystemSettings.objects.create(shop_name='Josiah Pharmacy and Stores', location="St. Mary's")
+                SystemSettings.objects.create(shop_name='New Light Medicine and Store', location="St. Mary's")
             return SystemSettings.objects.all()
         except Exception:
             return SystemSettings.objects.none()
@@ -308,23 +308,38 @@ class ReportsView(viewsets.ViewSet):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@authentication_classes([])
 def reset_password(request):
-    username = request.data.get('username', '').lower()
-    if not username:
-        return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
+    identifier = (request.data.get('username') or request.data.get('identifier') or '').strip().lower()
+    new_password = request.data.get('password', 'admin123').strip()
     
-    try:
-        user = User.objects.get(username=username)
-        if user.is_staff:
-            user.set_password('admin123')
-            user.save()
-            return Response({'message': f'Password for {username} has been reset to admin123'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Unauthorized: Only staff accounts can be reset.'}, status=status.HTTP_403_FORBIDDEN)
-    except User.DoesNotExist:
-        return Response({'error': f'User {username} not found'}, status=status.HTTP_404_NOT_FOUND)
+    if not identifier:
+        return Response({'error': 'Username, Email or Employee ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Look up by username or email
+    user = User.objects.filter(username__iexact=identifier).first()
+    if not user:
+        user = User.objects.filter(email__iexact=identifier).first()
+
+    # Look up by staff record
+    if not user:
+        staff = Staff.objects.filter(employee_id__iexact=identifier).first()
+        if staff and staff.employee_id:
+            user = User.objects.filter(username__iexact=staff.employee_id.lower()).first()
+
+    if user:
+        user.set_password(new_password or 'admin123')
+        user.save()
+        return Response({
+            'message': f'Password for {user.username} has been successfully reset!',
+            'username': user.username,
+            'default_password': new_password or 'admin123'
+        }, status=status.HTTP_200_OK)
+
+    return Response({'error': f'No account found matching "{identifier}". Please verify your details.'}, status=status.HTTP_404_NOT_FOUND)
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@authentication_classes([])
 def health_check(request):
     return Response({"status": "healthy", "version": "1.0.2", "message": "Pharmacy API is running"})
 

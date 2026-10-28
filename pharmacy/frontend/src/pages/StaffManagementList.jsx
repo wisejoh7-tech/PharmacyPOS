@@ -57,7 +57,7 @@ const StaffManagementList = () => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <FaArrowLeft className="text-[#1e1b4b] w-5 h-5 cursor-pointer" />
-            <h1 className="text-2xl font-bold text-[#1e1b4b]">Staff Directory</h1>
+            <h2 className="text-2xl font-bold text-[#1e1b4b]">Staff lists</h2>
           </div>
           <div className="flex items-center gap-4 text-[#1e1b4b]">
             <FaBell className="w-5 h-5 cursor-pointer" />

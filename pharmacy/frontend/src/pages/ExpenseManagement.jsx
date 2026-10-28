@@ -103,7 +103,7 @@ const ExpenseManagement = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-black text-slate-400 uppercase mb-1">Amount ($)</label>
+                            <label className="block text-[11px] font-black text-slate-400 uppercase mb-1">Amount (₦)</label>
                             <input 
                                 type="number"
                                 value={formData.amount}
@@ -154,7 +154,7 @@ const ExpenseManagement = () => {
                                             <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-black uppercase">{exp.category}</span>
                                         </td>
                                         <td className="px-5 py-3 text-[11px] text-slate-700 font-bold">{exp.description}</td>
-                                        <td className="px-5 py-3 text-right text-[12px] font-black text-slate-900 tabular-nums">${exp.amount}</td>
+                                        <td className="px-5 py-3 text-right text-[12px] font-black text-slate-900 tabular-nums">₦{exp.amount}</td>
                                         <td className="px-5 py-3 text-center">
                                             <button onClick={() => handleDeleteExpense(exp.id)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
                                                 <FaTrash className="text-xs" />

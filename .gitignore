@@ -2,6 +2,7 @@
 node_modules/
 dist/
 dist_electron/
+release-windows/
 .env
 .env.local
 
@@ -13,6 +14,10 @@ __pycache__/
 db.sqlite3
 staticfiles/
 backend/staticfiles/
+
+# Executables & Binaries
+*.apk
+*.exe
 
 # IDEs
 .vscode/

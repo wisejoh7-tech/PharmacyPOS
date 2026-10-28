@@ -308,7 +308,7 @@ const InventoryManagement = () => {
           </div>
           <div className="flex items-baseline gap-1">
             <p className="text-lg font-black text-slate-900 tabular-nums">
-              ${loading ? "..." : inventoryData.reduce((acc, item) => acc + ((parseFloat(item.unit_price) || 0) * (parseInt(item.stock) || 0)), 0).toLocaleString()}
+              ₦{loading ? "..." : inventoryData.reduce((acc, item) => acc + ((parseFloat(item.unit_price) || 0) * (parseInt(item.stock) || 0)), 0).toLocaleString()}
             </p>
             <p className="text-[10px] font-bold text-indigo-500 uppercase">Total</p>
           </div>
@@ -401,7 +401,7 @@ const InventoryManagement = () => {
                           {item.stock}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-right font-black text-slate-900 text-[13px] tabular-nums">${item.unit_price}</td>
+                      <td className="px-5 py-3 text-right font-black text-slate-900 text-[13px] tabular-nums">₦{item.unit_price}</td>
                       <td className="px-5 py-3 text-center min-w-[120px]">
                         <span className={`text-[12px] font-black tabular-nums ${isExpiring ? 'text-red-500 animate-pulse' : 'text-slate-500'}`}>
                           <span className="block">{item.expiry_date || "N/A"}</span>

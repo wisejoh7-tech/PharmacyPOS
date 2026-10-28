@@ -2,8 +2,8 @@
   "name": "pharmacy",
   "private": true,
   "version": "1.0.0",
-  "description": "Josiah Pharmacy Management System",
-  "author": "Josiah",
+  "description": "New Light Medicine and Store Management System",
+  "author": "New Light",
   "type": "module",
   "main": "electron-main.cjs",
   "scripts": {
@@ -52,8 +52,9 @@
     "wait-on": "^9.0.4"
   },
   "build": {
-    "appId": "com.josiah.pharmacy",
-    "productName": "josiapharmacy",
+    "appId": "com.newlight.pharmacy",
+    "productName": "NewLightMedicineAndStore",
+    "icon": "build/icon.ico",
     "directories": {
       "output": "dist_electron"
     },
@@ -65,6 +66,7 @@
     ],
     "asar": true,
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis",
         "portable"

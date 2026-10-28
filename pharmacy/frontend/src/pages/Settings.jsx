@@ -144,96 +144,103 @@ const Settings = () => {
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto space-y-6 text-sm animate-in fade-in duration-500">
-            <header className="flex flex-col gap-1">
-                <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight font-outfit">Administration Settings</h1>
-                <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Global configuration & security</p>
+        <div className="p-4 max-w-6xl mx-auto space-y-4 text-xs animate-in fade-in duration-500">
+            <header className="flex flex-col gap-0.5">
+                <h1 className="text-base font-black text-slate-900 uppercase tracking-tight font-outfit">Administration Settings</h1>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 {/* Branding Section */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-fit lg:col-span-12 xl:col-span-6">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                        <FaStore className="text-emerald-500" />
-                        <h2 className="text-[12px] font-black uppercase tracking-widest">System Branding & Info</h2>
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden h-fit lg:col-span-12 xl:col-span-6">
+                    <div className="px-4 py-2.5 border-b border-slate-100 flex items-center gap-2">
+                        <FaStore className="text-emerald-500 text-xs" />
+                        <h2 className="text-[10px] font-black uppercase tracking-widest">System Branding & Info</h2>
                     </div>
-                    <form onSubmit={handleSettingsSave} className="p-6 space-y-4">
-                        <div className="grid grid-cols-1 gap-4">
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Shop Name</label>
+                    <form onSubmit={handleSettingsSave} className="p-4 space-y-3">
+                        <div className="grid grid-cols-1 gap-3">
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Shop Name</label>
                                 <input 
                                     value={settings.shop_name}
                                     onChange={(e) => setSettings({...settings, shop_name: e.target.value})}
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 font-black text-[13px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-bold text-[11px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                    style={{ fontSize: '11px' }}
                                 />
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Location / Branch</label>
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Location / Branch</label>
                                 <input 
                                     value={settings.location}
                                     onChange={(e) => setSettings({...settings, location: e.target.value})}
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 font-black text-[13px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-bold text-[11px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                    style={{ fontSize: '11px' }}
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Phone Number</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Phone Number</label>
                                     <input 
                                         value={settings.phone_number || ''}
                                         onChange={(e) => setSettings({...settings, phone_number: e.target.value})}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 font-black text-[13px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-bold text-[11px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        style={{ fontSize: '11px' }}
                                     />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Email Address</label>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Email Address</label>
                                     <input 
                                         type="email"
                                         value={settings.email || ''}
                                         onChange={(e) => setSettings({...settings, email: e.target.value})}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 font-black text-[13px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-bold text-[11px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        style={{ fontSize: '11px' }}
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Physical Address</label>
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Address</label>
                                 <textarea 
                                     value={settings.address || ''}
                                     onChange={(e) => setSettings({...settings, address: e.target.value})}
                                     rows="2"
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 font-black text-[13px] outline-none focus:ring-2 focus:ring-emerald-50 resize-none"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-bold text-[11px] outline-none focus:ring-2 focus:ring-emerald-50 resize-none"
+                                    style={{ fontSize: '11px' }}
                                 />
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="space-y-1.5">
-                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Currency</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Currency</label>
                                     <input 
                                         value={settings.currency || 'NGN'}
                                         onChange={(e) => setSettings({...settings, currency: e.target.value})}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 font-black text-[13px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-bold text-[11px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        style={{ fontSize: '11px' }}
                                     />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Tax %</label>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Tax %</label>
                                     <input 
                                         type="number"
                                         step="0.01"
                                         value={settings.tax_rate || 0}
                                         onChange={(e) => setSettings({...settings, tax_rate: e.target.value})}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 font-black text-[13px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-bold text-[11px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        style={{ fontSize: '11px' }}
                                     />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Low Stock</label>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Low Stock</label>
                                     <input 
                                         type="number"
                                         value={settings.low_stock_threshold || 10}
                                         onChange={(e) => setSettings({...settings, low_stock_threshold: e.target.value})}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 font-black text-[13px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-bold text-[11px] outline-none focus:ring-2 focus:ring-emerald-50"
+                                        style={{ fontSize: '11px' }}
                                     />
                                 </div>
                             </div>
                         </div>
-                        <button disabled={loading} className="w-full flex items-center justify-center gap-2 bg-emerald-500 text-white rounded-xl py-2.5 text-[12px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100">
+                        <button disabled={loading} className="w-full flex items-center justify-center gap-1.5 bg-emerald-500 text-white rounded-lg py-2 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-md shadow-emerald-100" style={{ fontSize: '10px' }}>
                             <FaSave /> Save Changes
                         </button>
                     </form>
@@ -297,7 +304,7 @@ const Settings = () => {
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{editingUser ? 'New Password (Optional)' : 'Initial Password'}</label>
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{editingUser ? 'New Password (Optional)' : ' Password'}</label>
                                 <input 
                                     required={!editingUser}
                                     type="password"
@@ -308,7 +315,7 @@ const Settings = () => {
                                 />
                             </div>
                             <button disabled={loading} className={`w-full ${editingUser ? 'bg-blue-600' : 'bg-amber-500'} text-white rounded-xl py-2.5 text-[12px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-100`}>
-                                {editingUser ? <FaSave /> : <FaPlus />} {editingUser ? 'Update Admin' : 'Provision Admin'}
+                                {editingUser ? <FaSave /> : <FaPlus />} {editingUser ? 'Update Admin' : 'Add Admin'}
                             </button>
                         </form>
 

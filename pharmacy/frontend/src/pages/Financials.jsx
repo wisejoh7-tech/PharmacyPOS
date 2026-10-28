@@ -52,7 +52,7 @@ const Financials = () => {
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Revenue</span>
                         <FaChartLine className="text-emerald-500 opacity-20" />
                     </div>
-                    <p className="text-2xl font-black text-slate-900 tabular-nums">${(stats.total_revenue || 0).toLocaleString()}</p>
+                    <p className="text-2xl font-black text-slate-900 tabular-nums">₦{(stats.total_revenue || 0).toLocaleString()}</p>
                     <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Total Sales</p>
                 </div>
 
@@ -61,7 +61,7 @@ const Financials = () => {
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Expenses</span>
                         <FaArrowDown className="text-red-500 opacity-20" />
                     </div>
-                    <p className="text-2xl font-black text-slate-900 tabular-nums">${(stats.total_expenses || 0).toLocaleString()}</p>
+                    <p className="text-2xl font-black text-slate-900 tabular-nums">₦{(stats.total_expenses || 0).toLocaleString()}</p>
                     <p className="text-[10px] font-bold text-red-500 uppercase mt-1">Outgoings</p>
                 </div>
 
@@ -70,7 +70,7 @@ const Financials = () => {
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Net Profit</span>
                         <FaMoneyBill className="text-blue-500 opacity-20" />
                     </div>
-                    <p className="text-2xl font-black text-slate-900 tabular-nums">${(stats.net_profit || 0).toLocaleString()}</p>
+                    <p className="text-2xl font-black text-slate-900 tabular-nums">₦{(stats.net_profit || 0).toLocaleString()}</p>
                     <p className="text-[10px] font-bold text-blue-500 uppercase mt-1 text-xs">Revenue - Expenses</p>
                 </div>
 
@@ -79,7 +79,7 @@ const Financials = () => {
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Balance</span>
                         <FaCalendarAlt className="text-indigo-500 opacity-20" />
                     </div>
-                    <p className="text-2xl font-black text-slate-900 tabular-nums">${(stats.balance || 0).toLocaleString()}</p>
+                    <p className="text-2xl font-black text-slate-900 tabular-nums">₦{(stats.balance || 0).toLocaleString()}</p>
                     <p className="text-[10px] font-bold text-indigo-500 uppercase mt-1">Cash on Hand</p>
                 </div>
             </div>

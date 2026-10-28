@@ -29,8 +29,14 @@ const isValidToken = (token) => {
 api.interceptors.request.use(
   (config) => {
     config.baseURL = getBaseURL();
+    const isPublicEndpoint = config.url && (
+      config.url.includes('health-check') ||
+      config.url.includes('login') ||
+      config.url.includes('token')
+    );
+
     const token = localStorage.getItem('access_token');
-    if (isValidToken(token)) {
+    if (isValidToken(token) && !isPublicEndpoint) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
       // Ensure no stale or "null" header is sent

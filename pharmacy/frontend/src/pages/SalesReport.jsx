@@ -135,7 +135,7 @@ const SalesReport = () => {
                    </div>
                 </div>
                  <div className="mt-auto">
-                    <p className="text-sm font-black text-slate-900 tabular-nums">${stats.daily.toLocaleString()}</p>
+                    <p className="text-sm font-black text-slate-900 tabular-nums">₦{stats.daily.toLocaleString()}</p>
                     <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Verified Income</p>
                  </div>
                </div>
@@ -149,7 +149,7 @@ const SalesReport = () => {
                     </div>
                  </div>
                  <div className="mt-auto">
-                    <p className="text-sm font-black text-slate-900 tabular-nums">${stats.monthly.toLocaleString()}</p>
+                    <p className="text-sm font-black text-slate-900 tabular-nums">₦{stats.monthly.toLocaleString()}</p>
                     <p className="text-[10px] font-bold text-blue-500 uppercase tracking-tighter">Gross Revenue</p>
                  </div>
                </div>
@@ -177,7 +177,7 @@ const SalesReport = () => {
                     </div>
                  </div>
                  <div className="mt-auto">
-                    <p className="text-sm font-black text-slate-900 tabular-nums">${stats.avgValue.toFixed(2)}</p>
+                    <p className="text-sm font-black text-slate-900 tabular-nums">₦{stats.avgValue.toFixed(2)}</p>
                     <p className="text-[10px] font-bold text-purple-500 uppercase tracking-tighter">Per Receipt</p>
                  </div>
                </div>
@@ -260,7 +260,7 @@ const SalesReport = () => {
                           </td>
                           <td className="py-4 px-6 text-center text-[12px] font-bold text-slate-400 uppercase tracking-tighter truncate max-w-[80px]">{txn.staff_name || 'Sys'}</td>
                           <td className="py-4 px-6 text-[12px] font-bold text-slate-400 tabular-nums">{new Date(txn.created_at).toLocaleDateString()}</td>
-                          <td className="py-4 px-6 text-right font-black text-[13px] text-emerald-600 tabular-nums">${txn.total_amount}</td>
+                          <td className="py-4 px-6 text-right font-black text-[13px] text-emerald-600 tabular-nums">₦{txn.total_amount}</td>
                           <td className="py-4 px-6 text-center">
                             <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-emerald-50 text-emerald-600 uppercase tracking-widest border border-emerald-100 italic">Paid</span>
                           </td>

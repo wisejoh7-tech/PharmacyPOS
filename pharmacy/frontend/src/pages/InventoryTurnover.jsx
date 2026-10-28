@@ -128,7 +128,7 @@ const InventoryTurnover = () => {
                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Equity</h3>
                  </div>
                  <div className="mt-auto">
-                    <p className="text-sm font-black text-slate-900 tabular-nums">${totalStockValue.toLocaleString()}</p>
+                    <p className="text-sm font-black text-slate-900 tabular-nums">₦{totalStockValue.toLocaleString()}</p>
                     <p className="text-[7px] font-black text-blue-500 uppercase tracking-widest">Total Value</p>
                  </div>
               </div>

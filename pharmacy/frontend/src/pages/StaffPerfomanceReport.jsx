@@ -27,7 +27,7 @@ const StaffPerformanceReport = () => {
             ...staff,
             name: staff.full_name,
             scripts: salesRes.data.transaction_count,
-            sales: `$${(salesRes.data.total_revenue / 1000).toFixed(1)}k`,
+            sales: `₦${(salesRes.data.total_revenue / 1000).toFixed(1)}k`,
             rating: 4.5 + ((staff.id || 1) % 5) * 0.1, // Deterministic rating fallback
             avatar: staff.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(staff.full_name)}&background=random`
           };
@@ -36,7 +36,7 @@ const StaffPerformanceReport = () => {
             ...staff,
             name: staff.full_name,
             scripts: 0,
-            sales: "$0k",
+            sales: "₦0k",
             rating: 0,
             avatar: staff.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(staff.full_name)}&background=random`
           };
@@ -126,7 +126,7 @@ const StaffPerformanceReport = () => {
           <div className="flex-1 bg-white border border-emerald-100 rounded-2xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
             <FaMoneyBill className="text-emerald-500 w-5 h-5 mb-2" />
             <p className="text-[10px] font-bold text-gray-400 tracking-wider mb-1 uppercase">Sales Vol.</p>
-            <p className="text-xl font-bold text-gray-900 leading-none mb-2">${(dashboardStats?.total_revenue / 1000).toFixed(1) || '0'}k</p>
+            <p className="text-xl font-bold text-gray-900 leading-none mb-2">₦{(dashboardStats?.total_revenue / 1000).toFixed(1) || '0'}k</p>
             <div className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-500">
               <span>+8%</span> <FaArrowUp className="w-2 h-2" />
             </div>

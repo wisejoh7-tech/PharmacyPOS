@@ -100,7 +100,7 @@ const CustomerDetail = () => {
                            </div>
                         </td>
                         <td className="px-5 py-4 text-right">
-                           <span className="text-[13px] font-black text-emerald-600 tabular-nums">$42.50</span>
+                           <span className="text-[13px] font-black text-emerald-600 tabular-nums">₦42.50</span>
                         </td>
                      </tr>
                   </tbody>

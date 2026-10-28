@@ -48,10 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.local_pharmacy, size: 80, color: Colors.teal),
+              const Icon(Icons.local_hospital, size: 80, color: Colors.teal),
               const SizedBox(height: 24),
               const Text(
-                'Josiah Pharmacy',
+                'New Light Medicine and Store',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.teal),
               ),

@@ -19,41 +19,46 @@ const PharmacyDashboard = () => {
     revenue: 0,
     scripts: 0,
     lowStock: 0,
+    soldOut: 0,
     customers: 0
   });
   const [lowStockDrugs, setLowStockDrugs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState({ shop_name: 'PharmaCare Connect', location: "St. Mary's" });
+  const [settings, setSettings] = useState({ shop_name: 'New Light Medicine and Store', location: "St. Mary's" });
 
   const fetchData = async (signal) => {
     try {
       setLoading(true);
-      const [statsRes, drugRes, scriptsRes, customerRes, settingsRes] = await Promise.all([
-        reportService.getDashboardStats({ signal }),
-        drugService.getDrugs({ signal }),
-        api.get('prescriptions/', { signal }),
-        api.get('customers/', { signal }),
-        settingsService.getSettings({ signal })
+      const [statsRes, drugRes, scriptsRes, customerRes, salesRes, settingsRes] = await Promise.all([
+        reportService.getDashboardStats({ signal }).catch(() => ({ data: {} })),
+        drugService.getDrugs({ signal }).catch(() => ({ data: [] })),
+        api.get('prescriptions/', { signal }).catch(() => ({ data: [] })),
+        api.get('customers/', { signal }).catch(() => ({ data: [] })),
+        api.get('sales/', { signal }).catch(() => ({ data: [] })),
+        settingsService.getSettings({ signal }).catch(() => ({ data: [] }))
       ]);
 
       if (settingsRes.data && settingsRes.data.length > 0) {
         setSettings(settingsRes.data[0]);
       }
 
-      const data = statsRes.data;
+      const data = statsRes.data || {};
       const allDrugs = drugRes.data?.results || drugRes.data || [];
-      const lowStock = allDrugs.filter(d => d.stock <= d.reorder_level);
+      const lowStock = allDrugs.filter(d => parseInt(d.stock) <= parseInt(d.reorder_level || 5));
+      const soldOut = allDrugs.filter(d => parseInt(d.stock) === 0);
 
       setLowStockDrugs(lowStock.slice(0, 5)); // Show top 5 low stock
 
       const scripts = scriptsRes.data?.results || scriptsRes.data || [];
       const customers = customerRes.data?.results || customerRes.data || [];
+      const sales = salesRes.data?.results || salesRes.data || [];
 
       setStats({
-        revenue: data.total_revenue,
+        revenue: data.total_revenue || 0,
         scripts: scripts.filter(p => p.status === 'Pending').length,
         lowStock: lowStock.length,
-        customers: customers.length
+        soldOut: soldOut.length,
+        customers: sales.length > 0 ? sales.length : customers.length
       });
 
     } catch (error) {
@@ -112,13 +117,13 @@ const PharmacyDashboard = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="bg-blue-500/20 text-blue-300 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-blue-400/30">
-                Pharmacist Portal
+                New Light Medicine and Store  Portal
               </span>
               <span className="text-slate-400 text-xs">•</span>
-              <span className="text-slate-300 text-xs font-bold">{settings.shop_name || 'PharmaCare Connect'}</span>
+              <span className="text-slate-300 text-xs font-bold">{settings.shop_name || 'New Light health Care Connect'}</span>
             </div>
             <h1 className="text-base font-black text-white tracking-tight uppercase font-outfit mt-1">
-              Admin & Clinical Dashboard
+              Admin Dashboard
             </h1>
           </div>
         </div>
@@ -126,7 +131,9 @@ const PharmacyDashboard = () => {
         <div className="flex items-center gap-3 self-end md:self-auto">
           <div className="hidden sm:flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
             <FaShieldAlt className="text-blue-300 text-sm" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-blue-100">Secure Session</span>
+            <span className="text-[13px] font-black text-blue-300 uppercase tracking-tight">
+              {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
           </div>
           <button onClick={() => navigate('/staff/new')} className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded-xl transition-all border border-blue-500/50 shadow-md">
             + Add Staff
@@ -180,28 +187,28 @@ const PharmacyDashboard = () => {
                   <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm"><FaMoneyBill /></div>
                   <div>
                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Revenue</p>
-                    <p className="text-sm font-black text-slate-900 tabular-nums">${stats.revenue.toLocaleString()}</p>
+                    <p className="text-sm font-black text-slate-900 tabular-nums">₦{stats.revenue.toLocaleString()}</p>
+                  </div>
+               </div>
+               <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2 border-l-2 border-l-emerald-500">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><FaUsers /></div>
+                  <div>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Customers Served</p>
+                    <p className="text-sm font-black text-emerald-700 tabular-nums">{stats.customers} Recorded</p>
+                  </div>
+               </div>
+               <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2 border-l-2 border-l-rose-500">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-sm"><FaExclamationTriangle /></div>
+                  <div>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Low / Sold Out</p>
+                    <p className="text-sm font-black text-rose-600 tabular-nums">{stats.soldOut > 0 ? `${stats.soldOut} Sold Out` : `${stats.lowStock} Low Stock`}</p>
                   </div>
                </div>
                <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2">
                   <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-800 flex items-center justify-center text-sm"><FaFilePrescription /></div>
                   <div>
-                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Scripts</p>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Pending Scripts</p>
                     <p className="text-sm font-black text-slate-900 tabular-nums">{stats.scripts}</p>
-                  </div>
-               </div>
-               <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2 border-l-2 border-l-orange-500">
-                  <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-sm"><FaExclamationTriangle /></div>
-                  <div>
-                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Critical</p>
-                    <p className="text-sm font-black text-orange-600 tabular-nums">{stats.lowStock}</p>
-                  </div>
-               </div>
-               <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm"><FaUsers /></div>
-                  <div>
-                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Patients</p>
-                    <p className="text-sm font-black text-slate-900 tabular-nums">{stats.customers}</p>
                   </div>
                </div>
             </div>
@@ -210,7 +217,7 @@ const PharmacyDashboard = () => {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                <div className="px-5 py-3 border-b border-slate-50 flex items-center justify-between">
                   <div>
-                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">Stock Replenishment</h3>
+                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">Stock Replacement</h3>
                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Inventory Alert</p>
                   </div>
                   <button onClick={() => navigate('/inventory')} className="text-[11px] font-black text-blue-800 uppercase tracking-widest hover:text-blue-900">Full Audit</button>

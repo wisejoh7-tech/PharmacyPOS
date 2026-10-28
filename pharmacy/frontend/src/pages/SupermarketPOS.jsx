@@ -3,9 +3,10 @@ import productService from '../services/productService';
 import categoryService from '../services/categoryService';
 import supermarketSaleService from '../services/supermarketSaleService';
 import staffService from '../services/staffService';
+import barcodeService from '../services/barcodeService';
 import toast from 'react-hot-toast';
 import {
-  FaPlus, FaMinus, FaSearch, FaShoppingCart, FaUserTie, FaUndo, FaTimes, FaBarcode, FaPrint
+  FaPlus, FaMinus, FaSearch, FaShoppingCart, FaUserTie, FaUndo, FaTimes, FaBarcode, FaPrint, FaCamera
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -211,6 +212,29 @@ const SupermarketPOS = () => {
      }
   };
 
+  const handleMobileScan = async () => {
+    try {
+      const code = await barcodeService.scan();
+      if (code) {
+        const found = products.find(p => (p.barcode && p.barcode.toString().trim() === code) || (p.sku && p.sku.toString().trim() === code));
+        if (found) {
+          addToCart(found);
+          setLastScanned({
+            name: found.name,
+            price: found.unit_price,
+            time: Date.now()
+          });
+          toast.success(`Scanned: ${found.name} (₦${parseFloat(found.unit_price).toFixed(2)})`);
+        } else {
+          toast.error(`Barcode ${code} not found in inventory`);
+        }
+      }
+    } catch (error) {
+      console.error("Scan error:", error);
+      toast.error(error.message || "Failed to scan barcode");
+    }
+  };
+
   const categories = ['All', ...Array.from(new Set([
     ...categoriesList.filter(c => c.type === 'Supermarket').map(c => c.name),
     ...products.map(p => p.category_name || p.category).filter(Boolean)
@@ -232,19 +256,27 @@ const SupermarketPOS = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    const found = products.find(p => p.barcode === searchTerm);
+                    const code = searchTerm.trim();
+                    if (!code) return;
+                    const found = products.find(p => (p.barcode && p.barcode.toString().trim() === code) || (p.sku && p.sku.toString().trim() === code) || (p.name && p.name.toLowerCase().trim() === code.toLowerCase()));
                     if (found) {
+                      const existingInCart = cart.find(i => i.id === found.id);
+                      const currentQty = (existingInCart ? existingInCart.quantity : 0) + 1;
                       addToCart(found);
                       setLastScanned({
+                        id: found.id,
                         name: found.name,
-                        price: found.unit_price,
+                        barcode: found.barcode || found.sku || code,
+                        price: parseFloat(found.unit_price || 0),
+                        quantity: currentQty,
+                        totalAmount: parseFloat(found.unit_price || 0) * currentQty,
                         time: Date.now()
                       });
+                      toast.success(`Scanned: ${found.name} | Qty: ${currentQty} | Total: ₦${(parseFloat(found.unit_price || 0) * currentQty).toFixed(2)}`);
                       setSearchTerm('');
-                      // Keep focus for next scan
                       e.target.focus();
                     } else {
-                      toast.error("Product barcode not recognized");
+                      toast.error(`Barcode "${code}" not found`);
                     }
                   }
                 }}
@@ -252,12 +284,20 @@ const SupermarketPOS = () => {
                 autoFocus
                 className="flex-1 pl-4 pr-3 py-2 text-xs font-bold outline-none border-none bg-transparent"
               />
-              <button className="w-5 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-blue-600 border-l border-slate-50 transition-colors shrink-0">
-                <FaSearch className="text-sm" />
+              <button
+                onClick={handleMobileScan}
+                className="p-3 bg-white text-blue-600 hover:text-blue-700 border-l border-slate-100 transition-colors shrink-0 flex items-center gap-1 font-bold text-[11px]"
+                title="Scan with Camera"
+              >
+                <FaCamera className="text-sm" />
+                <span className="hidden sm:inline">Camera Scan</span>
               </button>
             </div>
-            
+
              <div className="flex items-center gap-3">
+               <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-[11px] font-black uppercase tracking-wider">
+                <FaBarcode className="text-blue-600 animate-pulse" /> Scanner Connected
+               </span>
                <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1">
                  <input 
                    type="checkbox" 
@@ -274,20 +314,35 @@ const SupermarketPOS = () => {
              </div>
           </div>
 
-           {lastScanned && (Date.now() - lastScanned.time < 3000) && (
-             <div className="bg-blue-600 text-white px-6 py-4 rounded-2xl flex items-center justify-between animate-in zoom-in duration-300 shadow-xl shadow-blue-100 ring-4 ring-blue-50">
+           {lastScanned && (Date.now() - lastScanned.time < 8000) && (
+             <div className="bg-blue-600 text-white px-6 py-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in zoom-in duration-300 shadow-xl shadow-blue-100 ring-4 ring-blue-50">
                <div className="flex items-center gap-4">
-                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                    <FaBarcode className="text-xl animate-pulse" />
+                 <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+                    <FaBarcode className="text-2xl animate-pulse" />
                  </div>
                  <div>
-                    <span className="text-[14px] font-black uppercase tracking-tight block">{lastScanned.name}</span>
-                    <span className="text-[11px] font-bold text-blue-100 uppercase tracking-widest">Added to Cart</span>
+                    <span className="text-[15px] font-black uppercase tracking-tight block">{lastScanned.name}</span>
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-blue-100 uppercase tracking-widest mt-0.5">
+                      <span>Barcode: {lastScanned.barcode || 'N/A'}</span>
+                      <span>•</span>
+                      <span>Qty in Cart: <strong className="text-white text-xs">{lastScanned.quantity || 1}</strong></span>
+                      <span>•</span>
+                      <span>Unit Price: ₦{parseFloat(lastScanned.price || 0).toFixed(2)}</span>
+                    </div>
                  </div>
                </div>
-               <div className="text-right">
-                  <span className="text-[18px] font-black tabular-nums block">${parseFloat(lastScanned.price).toFixed(2)}</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-100 italic">Price Point</span>
+               <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                  <div className="text-right">
+                    <span className="text-2xl font-black tabular-nums block">₦{parseFloat(lastScanned.totalAmount || lastScanned.price || 0).toFixed(2)}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-200">Total Amount</span>
+                  </div>
+                  <button
+                    onClick={() => window.print()}
+                    className="px-3.5 py-2.5 bg-white text-blue-700 hover:bg-blue-50 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                    title="Print Product Tag"
+                  >
+                    <FaPrint /> Print Tag
+                  </button>
                </div>
              </div>
            )}
@@ -339,7 +394,7 @@ const SupermarketPOS = () => {
                              <span className={`text-[13px] font-black tabular-nums ${product.stock <= product.reorder_level ? 'text-red-500' : 'text-slate-900'}`}>{product.stock}</span>
                           </td>
                           <td className="px-4 py-3 text-right">
-                             <span className="text-[13px] font-black text-slate-900 tabular-nums">${parseFloat(product.unit_price).toFixed(2)}</span>
+                             <span className="text-[13px] font-black text-slate-900 tabular-nums">₦{parseFloat(product.unit_price).toFixed(2)}</span>
                           </td>
                           <td className="px-4 py-3 text-center">
                              <button onClick={() => addToCart(product)} className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white rounded-lg transition-all shadow-sm">
@@ -399,7 +454,7 @@ const SupermarketPOS = () => {
                       <span className="text-[12px] font-black w-4 text-center tabular-nums">{item.quantity}</span>
                       <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 rounded-md bg-white border border-slate-100 flex items-center justify-center text-[12px] text-slate-400 hover:text-blue-500"><FaPlus /></button>
                     </div>
-                    <span className="text-[13px] font-black text-slate-900 tabular-nums">${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                    <span className="text-[13px] font-black text-slate-900 tabular-nums">₦{(item.unitPrice * item.quantity).toFixed(2)}</span>
                   </div>
                </div>
              ))
@@ -409,7 +464,7 @@ const SupermarketPOS = () => {
          <div className="p-4 bg-white border-t border-slate-100 space-y-2">
             <div className="flex justify-between text-[13px] font-black text-slate-400 uppercase tracking-widest">
               <span>Total Payable</span>
-              <span className="text-blue-600 text-sm tabular-nums">${totalAmount.toFixed(2)}</span>
+              <span className="text-blue-600 text-sm tabular-nums">₦{totalAmount.toFixed(2)}</span>
             </div>
             
             <button 
@@ -442,7 +497,7 @@ const SupermarketPOS = () => {
                  {lastSale.items.map(item => (
                     <div key={item.id} className="flex justify-between text-[13px]">
                        <span className="truncate pr-2">{item.name} x{item.quantity}</span>
-                       <span className="font-black">${(item.quantity * item.unitPrice).toFixed(2)}</span>
+                       <span className="font-black">₦{(item.quantity * item.unitPrice).toFixed(2)}</span>
                     </div>
                  ))}
               </div>
@@ -451,7 +506,7 @@ const SupermarketPOS = () => {
                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grand Total</p>
                    <span className="text-xs font-black uppercase">Paid:</span>
                  </div>
-                 <span className="text-2xl font-black text-blue-600 font-outfit tabular-nums">${lastSale.total.toFixed(2)}</span>
+                 <span className="text-2xl font-black text-blue-600 font-outfit tabular-nums">₦{lastSale.total.toFixed(2)}</span>
               </div>
               <div className="flex gap-2">
                  <button className="flex-1 py-3 rounded-xl bg-blue-500 text-white text-[12px] font-black uppercase shadow-lg shadow-blue-100 flex items-center justify-center gap-2" onClick={() => window.print()}>
@@ -480,13 +535,13 @@ const SupermarketPOS = () => {
                     {lastSale.items.map(item => (
                         <div key={item.id} className="flex justify-between">
                             <span>{item.name} x{item.quantity}</span>
-                            <span>${(item.quantity * item.unitPrice).toFixed(2)}</span>
+                            <span>₦{(item.quantity * item.unitPrice).toFixed(2)}</span>
                         </div>
                     ))}
                 </div>
                 <div className="flex justify-between text-base font-bold">
                     <span>TOTAL PAID:</span>
-                    <span>${lastSale.total.toFixed(2)}</span>
+                    <span>₦{lastSale.total.toFixed(2)}</span>
                 </div>
                 <div className="mt-8 text-center text-[12px]">
                     <p>Thank you for shopping with us.</p>

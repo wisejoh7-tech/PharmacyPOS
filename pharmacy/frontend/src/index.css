@@ -3,14 +3,61 @@
 
 :root {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 12px; /* Reduced for more compact UI */
+  font-size: 14px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    font-size: 16px; /* Optimized base font size for desktop view */
+  }
 }
 
 body {
   margin: 0;
-  background-color: #f8fafc;
+  background-color: #f8fafc; /* Normal clean medical background */
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Global Natural Case Override - Remove Forced Uppercase */
+*, *::before, *::after {
+  text-transform: none !important;
+}
+
+/* Form and Input Font Size Overrides */
+form, input, select, textarea, label, option {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+@media (min-width: 1024px) {
+  form, input, select, textarea, label, option {
+    font-size: 17px !important;
+  }
+}
+
+input, select, textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #7dd3fc !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  border-radius: 12px !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #64748b !important;
+}
+
+label {
+  letter-spacing: 0.02em !important;
+  color: #1e293b !important;
 }
 
 /* Custom Scrollbar */
@@ -24,12 +71,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #38bdf8;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #0284c7;
 }
 
 /* Typography utilities */
@@ -37,35 +84,35 @@ body {
   font-family: 'Outfit', sans-serif;
 }
 
-/* Button Base - White background, Green text/border */
+/* Button Base - Professional Medical Theme */
 .btn-pharmacy {
-  @apply bg-white text-emerald-600 border-2 border-emerald-500 hover:bg-emerald-50 transition-all font-bold rounded-xl px-4 py-2 flex items-center justify-center gap-2 cursor-pointer;
+  @apply bg-white text-sky-700 border-2 border-sky-400 hover:bg-sky-50 transition-all font-bold rounded-xl px-4 py-2.5 flex items-center justify-center gap-2 cursor-pointer shadow-sm;
 }
 
 .btn-pharmacy-primary {
-  @apply bg-emerald-600 text-white border-2 border-emerald-600 hover:bg-emerald-700 transition-all font-black rounded-xl px-4 py-2 flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer;
+  @apply bg-sky-600 text-white border-2 border-sky-600 hover:bg-sky-700 transition-all font-black rounded-xl px-4 py-2.5 flex items-center justify-center gap-2 shadow-lg shadow-sky-600/25 cursor-pointer;
 }
 
-/* Card utilities */
+/* Card utilities - Clean Crisp White */
 .card-stat {
-  @apply bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200;
+  @apply bg-white rounded-2xl border border-sky-200 p-4 shadow-sm hover:shadow-md hover:border-sky-300 transition-all duration-200;
 }
 
 .card-panel {
-  @apply bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden;
+  @apply bg-white rounded-2xl border border-sky-200 shadow-sm overflow-hidden;
 }
 
 /* Badge Utilities */
 .badge-emerald {
-  @apply bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase px-2 py-0.5 rounded-md;
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-black px-2.5 py-1 rounded-lg;
 }
 
 .badge-amber {
-  @apply bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase px-2 py-0.5 rounded-md;
+  @apply bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-black px-2.5 py-1 rounded-lg;
 }
 
 .badge-rose {
-  @apply bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-black uppercase px-2 py-0.5 rounded-md;
+  @apply bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-black px-2.5 py-1 rounded-lg;
 }
 
 /* Global Responsive Utilities */
@@ -79,4 +126,19 @@ body {
 
 .table-responsive {
   @apply overflow-x-auto w-full;
+}
+
+/* Sidebar Custom Scrollbar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.5);
+  border-radius: 10px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.9);
 }

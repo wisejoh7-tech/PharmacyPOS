@@ -5,6 +5,7 @@ import {
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+import { addToSyncQueue } from '../services/db';
 
 const StaffRegistration = () => {
   const navigate = useNavigate();
@@ -13,10 +14,12 @@ const StaffRegistration = () => {
 
   const [formData, setFormData] = useState({
     full_name: '',
+    username: '',
     email: '',
     phone_number: '',
     role: '',
     department: '',
+    password: '',
     employee_id: 'EP-' + Math.floor(Math.random() * 100000)
   });
   const [autoGenerate, setAutoGenerate] = useState(!isEditMode);
@@ -58,24 +61,34 @@ const StaffRegistration = () => {
     }
   }, [id, isEditMode, navigate]);
 
+  const [cameraStream, setCameraStream] = useState(null);
+
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setIsCameraOpen(true);
-      }
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
+      setCameraStream(mediaStream);
+      setIsCameraOpen(true);
     } catch (err) {
       console.error("Camera access error:", err);
-      toast.error("Camera access failed.");
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        toast.error("Camera access denied. Please allow camera permissions in site settings.");
+      } else {
+        toast.error("Camera device not found. You can upload an image file instead.");
+      }
     }
   };
 
+  useEffect(() => {
+    if (isCameraOpen && cameraStream && videoRef.current) {
+      videoRef.current.srcObject = cameraStream;
+      videoRef.current.play().catch(e => console.error("Play error:", e));
+    }
+  }, [isCameraOpen, cameraStream]);
+
   const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach(track => track.stop());
-      videoRef.current.srcObject = null;
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
     }
     setIsCameraOpen(false);
   };
@@ -101,31 +114,55 @@ const StaffRegistration = () => {
       return toast.error("Required: Name & Role");
     }
 
+    const loginName = (formData.username || formData.employee_id || '').trim();
+    const loginPass = formData.password || 'admin123';
+    const normalizedUser = loginName.toLowerCase();
+
+    // Cache user credentials locally for immediate offline login capability
+    const cacheCandidateCredentials = () => {
+      try {
+        const cachedUsers = JSON.parse(localStorage.getItem('offline_users_cache') || '{}');
+        cachedUsers[normalizedUser] = {
+          username: normalizedUser,
+          password: loginPass,
+          role: formData.role || 'Staff',
+          department: formData.department || 'General',
+          fullName: formData.full_name,
+          isAdmin: Boolean(formData.role && formData.role.toLowerCase().includes('admin'))
+        };
+        localStorage.setItem('offline_users_cache', JSON.stringify(cachedUsers));
+      } catch (e) {
+        console.warn("Failed to cache offline user credentials:", e);
+      }
+    };
+
     try {
       setIsSaving(true);
       const payload = { ...formData, photo: capturedImage };
+
       if (isEditMode) {
         await api.put(`staff/${id}/`, payload);
-        toast.success("Staff profile updated.");
+        toast.success(`Staff updated. Login: ${loginName}`);
       } else {
         await api.post('staff/', payload);
-        toast.success("Staff profile created.");
+        toast.success(`Staff registered! Login Username: ${loginName} | Password: ${loginPass}`, { duration: 6000 });
       }
+
+      cacheCandidateCredentials();
       navigate('/staff');
     } catch (err) {
-      console.error(err);
-      let errorMsg = isEditMode ? "Update failed." : "Registration failed.";
-      if (err.response?.data) {
-        if (typeof err.response.data === 'string') {
-          errorMsg = err.response.data;
-        } else if (typeof err.response.data === 'object') {
-          const messages = Object.values(err.response.data).flat();
-          if (messages.length > 0) {
-            errorMsg = messages.join(' ');
-          }
-        }
+      console.warn("Online registration failed, attempting offline save...", err);
+
+      // Offline fallback: cache candidate locally & queue for sync
+      try {
+        cacheCandidateCredentials();
+        await addToSyncQueue(isEditMode ? 'PUT' : 'POST', 'staff', { ...formData, photo: capturedImage });
+        toast.success(`Offline Registration Saved! Username: ${loginName} | Password: ${loginPass}`, { duration: 6000 });
+        navigate('/staff');
+      } catch (offlineErr) {
+        console.error("Offline registration error:", offlineErr);
+        toast.error("Registration failed offline. Please try again.");
       }
-      toast.error(errorMsg);
     } finally {
       setIsSaving(false);
     }
@@ -173,19 +210,17 @@ const StaffRegistration = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="bg-blue-500/20 text-blue-300 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-blue-400/30">
-                      {isEditMode ? 'Staff Modification Portal' : 'Pharmacist Registration Portal'}
+                    <span className="bg-blue-100/10 text-blue-100 text-[20px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-blue-400/30">
+                      {isEditMode ? 'Staff Modification Portal' : 'Staff Registration Portal'}
                     </span>
                   </div>
-                  <h1 className="text-base font-black text-white tracking-tight uppercase font-outfit mt-1">
-                    {isEditMode ? 'Edit Staff Personal Details' : 'Personnel Access & Staff Onboarding'}
-                  </h1>
+
                 </div>
               </div>
 
               <div className="hidden sm:flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
                 <FaShieldAlt className="text-blue-300 text-sm" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-blue-100">Verified Access</span>
+
               </div>
             </div>
 
@@ -219,12 +254,12 @@ const StaffRegistration = () => {
 
                   <canvas ref={canvasRef} className="hidden" />
 
-                  <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Profile Scan</h3>
-                  <p className="text-[8px] font-bold text-slate-400 text-center uppercase tracking-tighter mb-6">Biometric Identification</p>
+                  <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.3">Capture Face</h3>
+                  <p className="text-[8px] font-bold text-slate-400 text-center uppercase tracking-tighter mb-6">Biometric Capturing</p>
                   
                   <div className="w-full flex flex-col gap-2">
                     <label className="w-full py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-black uppercase tracking-widest text-center cursor-pointer hover:bg-slate-50 transition-all">
-                      Load Digital Key
+                      Upload Image
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -240,9 +275,13 @@ const StaffRegistration = () => {
                 {/* Details Column */}
                 <div className="md:w-[65%] p-8 space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
+                    <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Full Name</label>
-                      <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-black text-slate-900 outline-none uppercase focus:border-blue-800" />
+                      <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} placeholder="Enter Full Name..." className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-black text-slate-900 outline-none focus:border-blue-800" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Login Username</label>
+                      <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="e.g. john_doe or cashier1" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-black text-slate-900 outline-none focus:border-blue-800" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Email</label>
@@ -253,7 +292,7 @@ const StaffRegistration = () => {
                       <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-black text-slate-900 outline-none focus:border-blue-800" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Clinical Role</label>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Role</label>
                       <select name="role" value={formData.role} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[10px] font-black text-slate-900 outline-none focus:border-blue-800">
                         <option value="">Select Role</option>
                         <option value="pharmacist">Pharmacist</option>
@@ -272,6 +311,10 @@ const StaffRegistration = () => {
                         <option value="ops">Inventory</option>
                       </select>
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Account Password</label>
+                      <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder={isEditMode ? "Leave blank to keep current password" : "Set account password (default: admin123)"} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-black text-slate-900 outline-none focus:border-blue-800" />
+                    </div>
 
                     <div className="md:col-span-2 bg-slate-50 rounded-xl p-4 border border-slate-200">
                       <div className="flex justify-between items-center mb-3">
@@ -288,13 +331,13 @@ const StaffRegistration = () => {
 
               {/* Footer */}
               <div className="px-8 py-4 bg-slate-50/80 border-t border-slate-100 flex justify-end gap-3">
-                <button onClick={() => navigate('/staff')} className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 py-2 hover:text-slate-600">Dismiss</button>
+                <button onClick={() => navigate('/staff')} className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 py-2 hover:text-slate-600">Cancel</button>
                 <button 
                   onClick={handleSave} 
                   disabled={isSaving}
                   className="bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-xl border border-blue-900 shadow-md hover:bg-blue-950 transition-all min-w-[140px]"
                 >
-                  {isSaving ? "Saving..." : (isEditMode ? "Update Personnel" : "Authorize Personnel")}
+                  {isSaving ? "Saving..." : (isEditMode ? "Update Personnel" : "Authorize ")}
                 </button>
               </div>
             </div>

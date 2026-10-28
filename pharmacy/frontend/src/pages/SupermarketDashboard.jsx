@@ -110,7 +110,7 @@ const SupermarketDashboard = () => {
                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm"><FaMoneyBill /></div>
                      <div>
                         <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Revenue</p>
-                        <p className="text-sm font-black text-slate-900 tabular-nums">${stats.revenue.toLocaleString()}</p>
+                        <p className="text-sm font-black text-slate-900 tabular-nums">₦{stats.revenue.toLocaleString()}</p>
                      </div>
                   </div>
                   <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2">
@@ -230,7 +230,7 @@ const SupermarketDashboard = () => {
                      <div className="flex items-center justify-between">
                         <span className="text-[12px] font-black text-slate-900 uppercase tracking-tight">Inventory Worth</span>
                         <span className="text-[12px] font-black text-blue-500">
-                           ${parseFloat(inventoryData?.reduce((acc, item) => acc + (parseFloat(item.unit_price) * (item.stock || 0)), 0) || 0).toLocaleString()}
+                           ₦{parseFloat(inventoryData?.reduce((acc, item) => acc + (parseFloat(item.unit_price) * (item.stock || 0)), 0) || 0).toLocaleString()}
                         </span>
                      </div>
                      <div className="w-full h-1 bg-slate-50 rounded-full overflow-hidden">

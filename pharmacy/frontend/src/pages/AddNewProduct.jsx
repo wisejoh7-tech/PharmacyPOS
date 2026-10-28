@@ -282,7 +282,7 @@ const AddNewProduct = () => {
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Unit Price <span className="text-red-500">*</span></label>
+                                    <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Unit Price (₦) <span className="text-red-500">*</span></label>
                                     <input 
                                         required
                                         type="number"

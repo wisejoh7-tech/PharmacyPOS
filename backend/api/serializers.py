@@ -5,6 +5,20 @@ from .models import Category, Drug, Staff, Customer, Prescription, PrescriptionI
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
+        raw_username = (attrs.get('username') or '').strip()
+
+        # Flexible lookup: allow login by Username, Email, or Employee ID (case-insensitive)
+        user = User.objects.filter(username__iexact=raw_username).first()
+        if not user:
+            user = User.objects.filter(email__iexact=raw_username).first()
+        if not user:
+            staff = Staff.objects.filter(employee_id__iexact=raw_username).first()
+            if staff and staff.employee_id:
+                user = User.objects.filter(username__iexact=staff.employee_id.lower()).first()
+
+        if user:
+            attrs['username'] = user.username  # Standardize to actual User.username
+
         data = super().validate(attrs)
         user = self.user
 
@@ -105,6 +119,8 @@ class StaffSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     phone_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     department = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+    username = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = Staff
@@ -116,40 +132,52 @@ class StaffSerializer(serializers.ModelSerializer):
         return value.strip()
 
     def create(self, validated_data):
-        # Create the staff member first
+        password = validated_data.pop('password', None) or 'admin123'
+        custom_username = validated_data.pop('username', None)
         staff = Staff.objects.create(**validated_data)
         
-        # Automatically create a corresponding Django User for login if employee_id is available
-        if staff.employee_id:
-            username = staff.employee_id.lower()
-            if not User.objects.filter(username=username).exists():
-                User.objects.create_user(
-                    username=username,
+        login_username = (custom_username or staff.employee_id or '').strip().lower()
+        if login_username:
+            is_admin = bool(staff.role and 'admin' in staff.role.lower())
+            user = User.objects.filter(username=login_username).first()
+            if not user:
+                user = User.objects.create_user(
+                    username=login_username,
                     email=staff.email or '',
-                    password='admin123',
-                    is_staff=True # Allow access to staff features
+                    password=password,
+                    is_staff=True,
+                    is_superuser=is_admin
                 )
+            else:
+                user.set_password(password)
+                user.is_superuser = is_admin
+                user.save()
         return staff
 
     def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        custom_username = validated_data.pop('username', None)
         old_employee_id = instance.employee_id
         old_email = instance.email
 
         staff = super().update(instance, validated_data)
 
-        # Sync associated Django User if employee_id or email changed
-        new_username = staff.employee_id.lower() if staff.employee_id else ""
+        new_username = (custom_username or staff.employee_id or '').strip().lower()
         old_username = old_employee_id.lower() if old_employee_id else new_username
+        is_admin = bool(staff.role and 'admin' in staff.role.lower())
 
         user = User.objects.filter(username=old_username).first()
         if not user and old_email:
             user = User.objects.filter(email__iexact=old_email).first()
 
         if user:
-            if new_username and user.username != new_username and not User.objects.filter(username=new_username).exists():
+            if new_username and user.username != new_username:
                 user.username = new_username
             if user.email != (staff.email or ''):
                 user.email = staff.email or ''
+            if password:
+                user.set_password(password)
+            user.is_superuser = is_admin
             user.save()
 
         return staff

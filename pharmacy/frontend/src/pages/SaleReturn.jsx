@@ -123,7 +123,7 @@ const SaleReturn = () => {
                                    <span className="text-[9px] font-black text-slate-400 tabular-nums">{new Date(sale.created_at).toLocaleString()}</span>
                                 </td>
                                 <td className="px-5 py-3 text-right">
-                                   <span className="text-[11px] font-black text-emerald-600 tabular-nums">${sale.total_amount}</span>
+                                   <span className="text-[11px] font-black text-emerald-600 tabular-nums">₦{sale.total_amount}</span>
                                 </td>
                              </tr>
                           ))}
@@ -169,7 +169,7 @@ const SaleReturn = () => {
                                            >
                                               <td className="px-3 py-2 text-[9px] font-black uppercase tracking-tight">{item.drug_name}</td>
                                               <td className="px-3 py-2 text-[9px] font-bold text-center tabular-nums">{item.quantity}</td>
-                                              <td className="px-3 py-2 text-[9px] font-black text-right tabular-nums">${item.unit_price}</td>
+                                              <td className="px-3 py-2 text-[9px] font-black text-right tabular-nums">₦{item.unit_price}</td>
                                            </tr>
                                         ))}
                                      </tbody>
@@ -205,7 +205,7 @@ const SaleReturn = () => {
                                 <div className="space-y-1">
                                     <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest">Credit</label>
                                     <div className="w-full bg-red-50 rounded-lg px-3 py-2 text-[11px] font-black text-red-600 tabular-nums">
-                                        ${returnData.refund_amount}
+                                        ₦{returnData.refund_amount}
                                     </div>
                                 </div>
                             </div>

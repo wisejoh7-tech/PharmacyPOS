@@ -141,7 +141,7 @@ class SupermarketSaleItem(models.Model):
         return f"{product_name} x {self.quantity}"
 
 class SystemSettings(models.Model):
-    shop_name = models.CharField(max_length=255, default='Josiah Pharmacy and Stores')
+    shop_name = models.CharField(max_length=255, default='New Light Medicine and Store')
     location = models.CharField(max_length=255, default="St. Mary's")
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)

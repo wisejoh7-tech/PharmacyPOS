@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='SystemSettings',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('shop_name', models.CharField(default='Josiah Pharmacy and Stores', max_length=255)),
+                ('shop_name', models.CharField(default='New Light Medicine and Store', max_length=255)),
                 ('location', models.CharField(default="St. Mary's", max_length=255)),
             ],
         ),

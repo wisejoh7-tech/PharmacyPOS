@@ -103,7 +103,7 @@ const StaffSalesDashboard = () => {
                                     <FaMoneyBill className="text-emerald-500 w-4 h-4" />
                                 </div>
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Total Revenue</p>
-                                <p className="text-xl font-black text-slate-900 tracking-tight tabular-nums">${parseFloat(stats.total_revenue).toLocaleString()}</p>
+                                <p className="text-xl font-black text-slate-900 tracking-tight tabular-nums">₦{parseFloat(stats.total_revenue).toLocaleString()}</p>
                             </div>
 
                             {/* Customers */}
