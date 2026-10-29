@@ -36,8 +36,12 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
 ALLOWED_HOSTS = [
     "pharmacy-api-exn3.onrender.com",
+    "pharmacypos-fge3.onrender.com",
+    ".onrender.com",
+    "localhost",
+    "127.0.0.1",
 ]
-_allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '*')
+_allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
 if _allowed_hosts_env:
     for host in _allowed_hosts_env.split(','):
         h = host.strip()
@@ -196,6 +200,8 @@ if _hsts_seconds > 0:
 CORS_ALLOWED_ORIGINS = [
     "https://myschoolpharmacy-79006.vercel.app",
     "https://myschoolpharmacy-nf4jybavq-osas-projects-bd479006.vercel.app",
+    "https://pharmacypos-fge3.onrender.com",
+    "https://pharmacy-api-exn3.onrender.com",
 ]
 _cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
 if _cors_origins_env:
@@ -218,6 +224,9 @@ CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False' if not
 CSRF_TRUSTED_ORIGINS = [
     "https://myschoolpharmacy-79006.vercel.app",
     "https://myschoolpharmacy-nf4jybavq-osas-projects-bd479006.vercel.app",
+    "https://pharmacypos-fge3.onrender.com",
+    "https://pharmacy-api-exn3.onrender.com",
+    "https://*.onrender.com",
 ]
 _csrf_trusted = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 if _csrf_trusted:
