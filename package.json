@@ -1,0 +1,10 @@
+{
+  "name": "pharmacy-pos-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pharmacy POS Root Package",
+  "scripts": {
+    "start": "cd pharmacy && npm start",
+    "build": "cd pharmacy && npm install && npm run build && cd .. && node -e \"const fs = require('fs'); if (fs.existsSync('./pharmacy/dist')) { fs.mkdirSync('./dist', { recursive: true }); fs.cpSync('./pharmacy/dist', './dist', { recursive: true }); }\""
+  }
+}
