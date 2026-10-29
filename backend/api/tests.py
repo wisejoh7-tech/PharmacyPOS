@@ -313,3 +313,22 @@ class CustomExceptionHandlingTestCase(TestCase):
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertIn('detail', response.data)
+
+
+class AllowedHostsTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_allowed_hosts_headers(self):
+        hosts_to_test = [
+            'pharmacypos-fge3.onrender.com',
+            'pharmacy-api-exn3.onrender.com',
+            'custom-app.onrender.com',
+        ]
+        for host in hosts_to_test:
+            response = self.client.get('/api/health-check/', HTTP_HOST=host)
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_200_OK,
+                f"Request with HTTP_HOST '{host}' failed with status {response.status_code}"
+            )
