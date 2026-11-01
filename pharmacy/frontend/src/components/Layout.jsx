@@ -57,7 +57,7 @@ const Layout = ({ children }) => {
 
   // Map route to friendly title
   const getPageTitle = (path) => {
-    if (path === '/') return 'Pharmacy Dashboard';
+    if (path === '/') return 'Newlight Health Medicine and Dashboard';
     if (path.startsWith('/pos')) return 'POS Terminal';
     if (path.startsWith('/supermarket/pos')) return 'Retail POS';
     if (path.startsWith('/supermarket')) return 'Supermarket Hub';
