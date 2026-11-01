@@ -332,3 +332,29 @@ class AllowedHostsTestCase(TestCase):
                 status.HTTP_200_OK,
                 f"Request with HTTP_HOST '{host}' failed with status {response.status_code}"
             )
+
+
+class MigrationRunnerTestCase(TestCase):
+    def test_safe_migrate_execution(self):
+        from run_migrations import safe_migrate
+        # Should execute successfully without throwing exceptions
+        result = safe_migrate()
+        self.assertTrue(result)
+
+    def test_safe_migrate_recovers_when_schema_already_exists(self):
+        from run_migrations import safe_migrate
+        from django.db import connection
+        from django.db.migrations.recorder import MigrationRecorder
+
+        # Simulate missing migration history where tables already exist
+        recorder = MigrationRecorder(connection)
+        with connection.cursor() as cur:
+            cur.execute("DELETE FROM django_migrations WHERE app = 'api' AND name > '0001_initial'")
+
+        # safe_migrate should catch schema discrepancy and fake/sync migrations
+        result = safe_migrate()
+        self.assertTrue(result)
+
+        # Verify all api migrations are applied
+        applied = [name for app, name in recorder.applied_migrations() if app == 'api']
+        self.assertIn('0018_alter_staff_department_alter_staff_email_and_more', applied)
