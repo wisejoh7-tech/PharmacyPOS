@@ -1,4 +1,7 @@
-from django.test import TestCase
+import os
+import tempfile
+import sqlite3
+from django.test import TestCase, TransactionTestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -358,3 +361,62 @@ class MigrationRunnerTestCase(TestCase):
         # Verify all api migrations are applied
         applied = [name for app, name in recorder.applied_migrations() if app == 'api']
         self.assertIn('0018_alter_staff_department_alter_staff_email_and_more', applied)
+
+    def test_delete_table_utility(self):
+        from delete_table import drop_tables
+        from django.db import connection
+
+        with connection.cursor() as cur:
+            cur.execute("CREATE TABLE IF NOT EXISTS test_dummy_table (id integer primary key)")
+
+        tables_before = connection.introspection.table_names()
+        self.assertIn('test_dummy_table', tables_before)
+
+        dropped = drop_tables(['test_dummy_table'])
+        self.assertIn('test_dummy_table', dropped)
+
+        tables_after = connection.introspection.table_names()
+        self.assertNotIn('test_dummy_table', tables_after)
+
+    def test_safe_migrate_with_orphaned_customer_table(self):
+        import subprocess
+        import sys
+
+        # Run an isolated python process pointing to a fresh database with an orphaned api_customer table
+        tmp_db = tempfile.mktemp(suffix='.sqlite3')
+        con = sqlite3.connect(tmp_db)
+        con.execute('CREATE TABLE api_customer (id integer primary key)')
+        con.commit()
+        con.close()
+
+        test_code = f"""
+import os, sys, django
+sys.path.insert(0, 'backend')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'core.settings'
+os.environ['DATABASE_URL'] = 'sqlite:///{tmp_db}'
+django.setup()
+
+from run_migrations import safe_migrate
+from django.db import connection
+from django.db.migrations.recorder import MigrationRecorder
+
+result = safe_migrate()
+assert result is True
+
+recorder = MigrationRecorder(connection)
+applied = [name for app, name in recorder.applied_migrations() if app == 'api']
+assert '0001_initial' in applied
+assert '0018_alter_staff_department_alter_staff_email_and_more' in applied
+
+tables = connection.introspection.table_names()
+assert 'api_customer' in tables
+assert 'api_drug' in tables
+"""
+        cmd = [sys.executable, '-c', test_code]
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        try:
+            os.remove(tmp_db)
+        except OSError:
+            pass
+
+        self.assertEqual(proc.returncode, 0, f"Subprocess failed with stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}")
