@@ -5,11 +5,15 @@ import django
 def safe_migrate():
     """
     Safely executes Django migrations during deployment.
-    First tries standard migration with --fake-initial.
-    If database tables already exist from previous deployments or manual schemas,
-    and a migration fails because of existing relations or schema mismatches,
-    it detects existing tables and synchronizes the migration history in proper dependency order
-    so future migrations and server startup proceed cleanly without crashes.
+    - Honors DROP_TABLES environment variable to drop specified comma-separated tables.
+    - First tries standard migration with --fake-initial.
+    - If a migration fails because of existing relations (e.g. relation "api_customer" already exists)
+      or schema mismatches:
+        * If 0001_initial failed because only a subset of initial models (like api_customer) exist
+          as orphaned tables from an aborted deployment, it drops those orphaned tables so
+          0001_initial can cleanly run and construct all application models.
+        * If the database represents a complete pre-existing database schema, it detects existing
+          tables and marks migration history in topological dependency order.
     """
     from django.core.management import call_command
     from django.db import connection, DatabaseError
@@ -17,6 +21,22 @@ def safe_migrate():
     from django.db.migrations.loader import MigrationLoader
 
     print("--- Running Database Migrations ---")
+
+    # Step 0: Check if any tables are explicitly requested to be dropped via DROP_TABLES
+    drop_tables_env = os.environ.get('DROP_TABLES', '').strip()
+    if drop_tables_env:
+        tables_to_drop = [t.strip() for t in drop_tables_env.split(',') if t.strip()]
+        existing_tables = set(connection.introspection.table_names())
+        with connection.cursor() as cursor:
+            for table_name in tables_to_drop:
+                # Sanitize table name to avoid SQL injection
+                clean_table = ''.join(c for c in table_name if c.isalnum() or c == '_')
+                if clean_table and clean_table in existing_tables:
+                    print(f"Explicitly dropping table requested by DROP_TABLES: {clean_table}")
+                    if connection.vendor == 'postgresql':
+                        cursor.execute(f'DROP TABLE IF EXISTS "{clean_table}" CASCADE;')
+                    else:
+                        cursor.execute(f'DROP TABLE IF EXISTS "{clean_table}";')
 
     # Step 1: Attempt standard migration with --fake-initial
     try:
@@ -38,7 +58,40 @@ def safe_migrate():
         print(f"Existing database tables detected: {len(existing_tables)}")
         print(f"Recorded migrations applied count: {len(applied)}")
 
-        # Check if key app models already exist in the database
+        # Models defined in api.0001_initial
+        initial_api_tables = {
+            'api_customer',
+            'api_drug',
+            'api_staff',
+            'api_prescription',
+            'api_prescriptionitem',
+            'api_sale',
+        }
+        initial_is_applied = ('api', '0001_initial') in applied
+        initial_tables_in_db = initial_api_tables.intersection(existing_tables)
+
+        # Case A: 0001_initial is NOT recorded as applied, but some initial tables (e.g. api_customer) exist.
+        # This occurs when a previous deployment crashed mid-migration or created partial tables.
+        # If not all initial tables exist, fake-initial cannot work, and migrate fails with "already exists".
+        if not initial_is_applied and initial_tables_in_db:
+            if initial_tables_in_db != initial_api_tables:
+                print(
+                    f"Partial/orphaned initial tables detected without recorded 0001_initial: {initial_tables_in_db}. "
+                    "Cleaning orphaned initial tables so 0001_initial can run completely..."
+                )
+                with connection.cursor() as cursor:
+                    for orphan in initial_tables_in_db:
+                        if connection.vendor == 'postgresql':
+                            cursor.execute(f'DROP TABLE IF EXISTS "{orphan}" CASCADE;')
+                        else:
+                            cursor.execute(f'DROP TABLE IF EXISTS "{orphan}";')
+
+                print("Orphaned tables dropped. Re-running migration...")
+                call_command('migrate', '--fake-initial', interactive=False)
+                print("Migrations applied successfully after clearing orphaned tables.")
+                return True
+
+        # Case B: Pre-existing database schema where initial tables exist
         core_app_tables = {'api_drug', 'api_customer', 'api_staff', 'api_sale'}
         has_preexisting_schema = bool(core_app_tables.intersection(existing_tables))
 
