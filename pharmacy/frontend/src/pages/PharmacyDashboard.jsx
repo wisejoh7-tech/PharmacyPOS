@@ -123,7 +123,7 @@ const PharmacyDashboard = () => {
               <span className="text-slate-300 text-xs font-bold">{settings.shop_name || 'New Light health Care Connect'}</span>
             </div>
             <h1 className="text-base font-black text-white tracking-tight uppercase font-outfit mt-1">
-              Admin Dashboard
+              Newlight Health Medicine and Dashboard
             </h1>
           </div>
         </div>
