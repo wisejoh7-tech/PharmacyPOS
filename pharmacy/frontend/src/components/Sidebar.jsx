@@ -33,8 +33,10 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const role = (user?.role || 'Admin').toLowerCase();
   const isAdmin = user?.isAdmin || role.includes('admin') || role.includes('manager');
+  const isSalesAttendant = role.includes('cashier') || role.includes('attendant') || (role.includes('sales') && !role.includes('rep'));
+  const isSalesRep = role.includes('rep');
   const isPharmacist = role.includes('pharmacist') || role.includes('doctor');
-  const isCashier = role.includes('cashier') || role.includes('sales');
+  const isNurse = role.includes('nurse');
 
   const navCategories = [
     {
@@ -46,32 +48,32 @@ const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'POS & SALES',
       items: [
-        { name: 'POS Terminal', icon: <FaCashRegister />, path: '/pos', badge: 'Pharmacy Rx ', roles: ['admin', 'pharmacist', 'cashier', 'all'] },
-        { name: 'Retail POS', icon: <FaShoppingCart />, path: '/supermarket/pos', badge: 'Supermarket', roles: ['admin', 'cashier', 'all'] },
+        { name: 'POS Terminal', icon: <FaCashRegister />, path: '/pos', badge: 'Pharmacy Rx ', roles: ['sales_attendant', 'sales_rep'] },
+        { name: 'Retail POS', icon: <FaShoppingCart />, path: '/supermarket/pos', badge: 'Supermarket', roles: ['sales_attendant', 'sales_rep'] },
       ]
     },
     {
       title: 'INVENTORY & RX',
       items: [
-        { name: 'Pharmacy Stock', icon: <FaBox />, path: '/inventory', roles: ['admin', 'pharmacist', 'cashier', 'all'] },
-        { name: 'Supermarket Hub', icon: <FaShoppingCart />, path: '/supermarket', roles: ['admin', 'cashier', 'all'] },
-        { name: 'Categories', icon: <FaFolder />, path: '/categories', roles: ['admin', 'pharmacist', 'cashier', 'all'] },
-        { name: 'Prescriptions', icon: <FaBriefcaseMedical />, path: '/prescriptions/review', roles: ['admin', 'pharmacist', 'all'] },
+        { name: 'Pharmacy Stock', icon: <FaBox />, path: '/inventory', roles: ['sales_rep'] },
+        { name: 'Supermarket Hub', icon: <FaShoppingCart />, path: '/supermarket', roles: ['sales_rep'] },
+        { name: 'Categories', icon: <FaFolder />, path: '/categories', roles: ['sales_rep'] },
+        { name: 'Prescriptions', icon: <FaBriefcaseMedical />, path: '/prescriptions/review', roles: ['pharmacist', 'nurse'] },
       ]
     },
     {
       title: 'MANAGEMENT',
       items: [
-        { name: 'Patients & Clients', icon: <FaUsers />, path: '/customers', roles: ['admin', 'pharmacist', 'cashier', 'all'] },
+        { name: 'Patients & Clients', icon: <FaUsers />, path: '/customers', roles: ['pharmacist', 'nurse'] },
         { name: 'Staff List', icon: <FaUsers />, path: '/staff', roles: ['admin'] },
         { name: 'Staff Registration', icon: <FaUserPlus />, path: '/staff/new', roles: ['admin'] },
-        { name: 'Staff Dashboards', icon: <FaChartLine />, path: '/staff/dashboards', roles: ['admin', 'pharmacist'] },
+        { name: 'Staff Dashboards', icon: <FaChartLine />, path: '/staff/dashboards', roles: ['admin'] },
       ]
     },
     {
       title: 'FINANCIALS & AUDIT',
       items: [
-        { name: 'Sales Reports', icon: <FaChartLine />, path: '/reports/sales', roles: ['admin', 'pharmacist'] },
+        { name: 'Sales Reports', icon: <FaChartLine />, path: '/reports/sales', roles: ['sales_rep'] },
         { name: 'Expenses', icon: <FaMoneyBill />, path: '/expenses', roles: ['admin'] },
         { name: 'Financial Overview', icon: <FaChartLine />, path: '/financials', roles: ['admin'] },
       ]
@@ -86,9 +88,12 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const filterItem = (item) => {
     if (isAdmin) return true;
-    if (isPharmacist && (item.roles.includes('pharmacist') || item.roles.includes('all'))) return true;
-    if (isCashier && (item.roles.includes('cashier') || item.roles.includes('all'))) return true;
-    return item.roles.includes('all');
+    if (item.roles.includes('all')) return true;
+    if (isSalesAttendant && (item.roles.includes('sales_attendant') || item.roles.includes('cashier'))) return true;
+    if (isSalesRep && item.roles.includes('sales_rep')) return true;
+    if (isPharmacist && item.roles.includes('pharmacist')) return true;
+    if (isNurse && item.roles.includes('nurse')) return true;
+    return false;
   };
 
   return (

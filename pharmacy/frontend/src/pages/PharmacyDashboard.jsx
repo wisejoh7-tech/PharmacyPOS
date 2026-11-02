@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { socket } from '../services/socket';
@@ -15,6 +16,9 @@ import {
 
 const PharmacyDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const role = (user?.role || '').toLowerCase();
+  const isAdmin = user?.isAdmin || role.includes('admin') || role.includes('manager');
   const [stats, setStats] = useState({
     revenue: 0,
     scripts: 0,
@@ -135,9 +139,11 @@ const PharmacyDashboard = () => {
               {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
           </div>
-          <button onClick={() => navigate('/staff/new')} className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded-xl transition-all border border-blue-500/50 shadow-md">
-            + Add Staff
-          </button>
+          {isAdmin && (
+            <button onClick={() => navigate('/staff/new')} className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded-xl transition-all border border-blue-500/50 shadow-md">
+              + Add Staff
+            </button>
+          )}
         </div>
       </div>
 
