@@ -21,6 +21,12 @@ if [ -f "ensure_admin.py" ]; then
     python ensure_admin.py || echo "Warning: ensure_admin.py failed or skipped."
 fi
 
+# Sync staff records to User authentication accounts
+if [ -f "sync_staff_users.py" ]; then
+    echo "Syncing staff users..."
+    python sync_staff_users.py || echo "Warning: sync_staff_users.py failed or skipped."
+fi
+
 # Collect static files for Whitenoise serving
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
