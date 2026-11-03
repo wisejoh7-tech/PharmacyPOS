@@ -12,6 +12,8 @@ import {
 
 const SupermarketInventory = () => {
   const { user } = useContext(AuthContext);
+  const role = (user?.role || '').toLowerCase();
+  const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
   const [inventoryData, setInventoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -200,7 +202,7 @@ const SupermarketInventory = () => {
             </button>
           </div>
 
-          {user?.isAdmin && (
+          {canManageInventory && (
             <div className="flex gap-2">
               <button
                 onClick={() => { setEditingCategory(null); setNewCategoryName(''); setIsCategoryModalOpen(true); }}
@@ -352,7 +354,7 @@ const SupermarketInventory = () => {
                         </span>
                       </td>
                       <td className="px-5 py-3">
-                        {user?.isAdmin && (
+                        {canManageInventory && (
                           <div className="flex justify-center items-center gap-1">
                             <Link to={`/supermarket/inventory/edit/${item.id}`} className="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all" title="Edit Product">
                               <FaEdit className="text-sm" />

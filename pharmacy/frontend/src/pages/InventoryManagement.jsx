@@ -12,7 +12,8 @@ import {
 
 const InventoryManagement = () => {
   const { user } = useContext(AuthContext);
-  const canManageInventory = user?.isAdmin || (user?.role && ['admin', 'administrator', 'manager', 'director', 'staff', 'pharmacist', 'general'].includes(user.role.toLowerCase())) || !!user;
+  const role = (user?.role || '').toLowerCase();
+  const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
   const [inventoryData, setInventoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

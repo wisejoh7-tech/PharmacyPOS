@@ -28,12 +28,15 @@ const AddNewProduct = () => {
     const [newCategoryName, setNewCategoryName] = useState('');
     const [editingCategory, setEditingCategory] = useState(null);
 
+    const role = (user?.role || '').toLowerCase();
+    const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
+
     useEffect(() => {
-        if (user && !user.isAdmin) {
-            toast.error("Unauthorized access denied.");
+        if (user && !canManageInventory) {
+            toast.error("Unauthorized access denied. Admin or Sales Rep permission required.");
             navigate('/supermarket/inventory');
         }
-    }, [user, navigate]);
+    }, [user, canManageInventory, navigate]);
 
     useEffect(() => {
         fetchCategories();
@@ -163,7 +166,7 @@ const AddNewProduct = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {user?.isAdmin && (
+                    {canManageInventory && (
                         <>
                             <button
                                 onClick={() => { setEditingCategory(null); setNewCategoryName(''); setIsCategoryModalOpen(true); }}

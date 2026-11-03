@@ -11,7 +11,8 @@ import {
 
 const CategoryManagement = () => {
   const { user } = useContext(AuthContext);
-  const canManageCategories = user?.isAdmin || (user?.role && ['admin', 'administrator', 'manager', 'director'].includes(user.role.toLowerCase())) || !!user;
+  const role = (user?.role || '').toLowerCase();
+  const canManageCategories = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
 
   const [activeTab, setActiveTab] = useState('Pharmacy'); // 'Pharmacy' | 'Supermarket'
   const [categories, setCategories] = useState([]);

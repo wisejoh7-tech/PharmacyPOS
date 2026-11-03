@@ -1,16 +1,54 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FaThLarge, FaCashRegister, FaBox, FaBriefcaseMedical, FaBars } from 'react-icons/fa';
+import { FaThLarge, FaCashRegister, FaBox, FaBriefcaseMedical, FaBars, FaUsers, FaShoppingCart } from 'react-icons/fa';
+import { AuthContext } from '../context/AuthContext';
 
 const MobileBottomNav = ({ onToggleSidebar }) => {
   const location = useLocation();
+  const { user } = useContext(AuthContext);
 
-  const navItems = [
-    { name: 'Home', path: '/', icon: <FaThLarge /> },
-    { name: 'POS', path: '/pos', icon: <FaCashRegister /> },
-    { name: 'Stock', path: '/inventory', icon: <FaBox /> },
-    { name: 'Rx', path: '/prescriptions/review', icon: <FaBriefcaseMedical /> },
-  ];
+  const role = (user?.role || 'Admin').toLowerCase();
+  const isAdmin = user?.isAdmin || role.includes('admin') || role.includes('manager');
+  const isSalesAttendant = role.includes('cashier') || role.includes('attendant') || (role.includes('sales') && !role.includes('rep'));
+  const isSalesRep = role.includes('rep');
+  const isPharmacist = role.includes('pharmacist') || role.includes('doctor');
+  const isNurse = role.includes('nurse');
+
+  let navItems = [{ name: 'Home', path: '/', icon: <FaThLarge /> }];
+
+  if (isAdmin) {
+    navItems = [
+      { name: 'Home', path: '/', icon: <FaThLarge /> },
+      { name: 'POS', path: '/pos', icon: <FaCashRegister /> },
+      { name: 'Stock', path: '/inventory', icon: <FaBox /> },
+      { name: 'Rx', path: '/prescriptions/review', icon: <FaBriefcaseMedical /> },
+    ];
+  } else if (isSalesAttendant) {
+    navItems = [
+      { name: 'Home', path: '/', icon: <FaThLarge /> },
+      { name: 'POS', path: '/pos', icon: <FaCashRegister /> },
+      { name: 'Retail POS', path: '/supermarket/pos', icon: <FaShoppingCart /> },
+    ];
+  } else if (isSalesRep) {
+    navItems = [
+      { name: 'Home', path: '/', icon: <FaThLarge /> },
+      { name: 'Stock', path: '/inventory', icon: <FaBox /> },
+      { name: 'POS', path: '/pos', icon: <FaCashRegister /> },
+      { name: 'Retail POS', path: '/supermarket/pos', icon: <FaShoppingCart /> },
+    ];
+  } else if (isPharmacist) {
+    navItems = [
+      { name: 'Home', path: '/', icon: <FaThLarge /> },
+      { name: 'Patients', path: '/customers', icon: <FaUsers /> },
+      { name: 'Rx', path: '/prescriptions/review', icon: <FaBriefcaseMedical /> },
+    ];
+  } else if (isNurse) {
+    navItems = [
+      { name: 'Home', path: '/', icon: <FaThLarge /> },
+      { name: 'Patients', path: '/customers', icon: <FaUsers /> },
+      { name: 'Rx Care', path: '/prescriptions/review', icon: <FaBriefcaseMedical /> },
+    ];
+  }
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-40 px-2 py-1.5 shadow-2xl backdrop-blur-md bg-slate-900/95 pb-safe">
