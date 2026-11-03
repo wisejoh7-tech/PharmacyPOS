@@ -1,0 +1,105 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  STACK_NAME: pharmacy-production
+  ENVIRONMENT_NAME: production
+
+jobs:
+  deploy:
+    name: Build & Deploy to AWS (S3, CloudFront, App Runner, RDS)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy CloudFormation Base Stack (RDS, VPC, ECR, S3, CloudFront)
+        run: |
+          aws cloudformation deploy \
+            --template-file aws/cloudformation.yaml \
+            --stack-name ${{ env.STACK_NAME }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --region ${{ env.AWS_REGION }} \
+            --parameter-overrides \
+              EnvironmentName=${{ env.ENVIRONMENT_NAME }} \
+              DBUsername=${{ secrets.DB_USERNAME || 'pharmacyadmin' }} \
+              DBPassword=${{ secrets.DB_PASSWORD }} \
+              DjangoSecretKey=${{ secrets.DJANGO_SECRET_KEY }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag, and Push Backend Image to Amazon ECR
+        id: build-backend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ENVIRONMENT_NAME }}-pharmacy-backend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker build -t "$IMAGE_URI" -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" -f backend/Dockerfile backend/
+          docker push "$IMAGE_URI"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
+      - name: Update App Runner with New Backend Image
+        run: |
+          aws cloudformation deploy \
+            --template-file aws/cloudformation.yaml \
+            --stack-name ${{ env.STACK_NAME }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --region ${{ env.AWS_REGION }} \
+            --parameter-overrides \
+              EnvironmentName=${{ env.ENVIRONMENT_NAME }} \
+              DBUsername=${{ secrets.DB_USERNAME || 'pharmacyadmin' }} \
+              DBPassword=${{ secrets.DB_PASSWORD }} \
+              DjangoSecretKey=${{ secrets.DJANGO_SECRET_KEY }} \
+              BackendImageUri=${{ steps.build-backend.outputs.image_uri }}
+
+      - name: Fetch Stack Outputs
+        id: stack-outputs
+        run: |
+          APP_RUNNER_URL=$(aws cloudformation describe-stacks --stack-name ${{ env.STACK_NAME }} --region ${{ env.AWS_REGION }} --query "Stacks[0].Outputs[?OutputKey=='AppRunnerServiceUrl'].OutputValue" --output text)
+          S3_BUCKET=$(aws cloudformation describe-stacks --stack-name ${{ env.STACK_NAME }} --region ${{ env.AWS_REGION }} --query "Stacks[0].Outputs[?OutputKey=='FrontendS3BucketName'].OutputValue" --output text)
+          CF_DIST_ID=$(aws cloudformation describe-stacks --stack-name ${{ env.STACK_NAME }} --region ${{ env.AWS_REGION }} --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
+          echo "api_url=https://$APP_RUNNER_URL/api" >> "$GITHUB_OUTPUT"
+          echo "s3_bucket=$S3_BUCKET" >> "$GITHUB_OUTPUT"
+          echo "dist_id=$CF_DIST_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'pharmacy/package-lock.json'
+
+      - name: Build React Frontend
+        working-directory: ./pharmacy
+        env:
+          VITE_API_URL: ${{ steps.stack-outputs.outputs.api_url }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy Frontend to S3
+        run: |
+          aws s3 sync pharmacy/dist/ "s3://${{ steps.stack-outputs.outputs.s3_bucket }}/" --delete
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id "${{ steps.stack-outputs.outputs.dist_id }}" --paths "/*"

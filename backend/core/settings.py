@@ -38,6 +38,9 @@ ALLOWED_HOSTS = [
     "pharmacy-api-exn3.onrender.com",
     "pharmacypos-fge3.onrender.com",
     ".onrender.com",
+    ".awsapprunner.com",
+    ".amazonaws.com",
+    ".cloudfront.net",
     "localhost",
     "127.0.0.1",
 ]
@@ -227,6 +230,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://pharmacypos-fge3.onrender.com",
     "https://pharmacy-api-exn3.onrender.com",
     "https://*.onrender.com",
+    "https://*.awsapprunner.com",
+    "https://*.cloudfront.net",
 ]
 _csrf_trusted = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 if _csrf_trusted:
