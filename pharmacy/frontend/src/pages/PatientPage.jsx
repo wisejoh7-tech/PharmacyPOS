@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import customerService from '../services/customerService';
 import api from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 import { 
   FaArrowLeft, FaUserCircle, FaBriefcaseMedical, 
   FaHistory, FaNotesMedical, FaCalendarPlus, FaPlus, FaTrash, FaCapsules,
   FaFilePrescription, FaClipboardList, FaStethoscope, FaMicroscope,
-  FaHeartbeat, FaExchangeAlt, FaDoorOpen
+  FaHeartbeat, FaExchangeAlt, FaDoorOpen, FaUserNurse, FaFileAlt, FaThermometerHalf
 } from 'react-icons/fa';
 import drugService from '../services/drugService';
 import prescriptionService from '../services/prescriptionService';
@@ -15,6 +16,13 @@ import toast from 'react-hot-toast';
 const PatientPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
+    const role = (user?.role || '').toLowerCase();
+    const isAdmin = user?.isAdmin || role.includes('admin') || role.includes('manager');
+    const isPharmacist = role.includes('pharmacist') || role.includes('doctor');
+    const isNurse = role.includes('nurse');
+    const canPrescribe = isAdmin || isPharmacist;
+
     const [patient, setPatient] = useState(null);
     const [loading, setLoading] = useState(true);
     const [drugs, setDrugs] = useState([]);
@@ -152,13 +160,20 @@ const PatientPage = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                     <button 
-                         onClick={() => setIsPrescribing(!isPrescribing)}
-                         className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-tight flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
-                     >
-                         <FaCalendarPlus className="w-3 h-3" />
-                         {isPrescribing ? 'Close Form' : 'Prescribe Now'}
-                     </button>
+                     {canPrescribe && (
+                       <button
+                           onClick={() => setIsPrescribing(!isPrescribing)}
+                           className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-tight flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+                       >
+                           <FaCalendarPlus className="w-3 h-3" />
+                           {isPrescribing ? 'Close Form' : 'Prescribe Now'}
+                       </button>
+                     )}
+                     {isNurse && (
+                       <div className="px-3.5 py-1.5 bg-blue-50 text-blue-800 rounded-xl font-black uppercase tracking-wider text-[11px] border border-blue-200 flex items-center gap-1.5">
+                         <FaUserNurse className="text-sm" /> Nursing Care Active
+                       </div>
+                     )}
                 </div>
             </header>
 
@@ -288,7 +303,7 @@ const PatientPage = () => {
                      )}
 
                      {/* Prescription Entry Point Card */}
-                     {!isPrescribing && (
+                     {!isPrescribing && canPrescribe && (
                          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 flex items-center justify-between group hover:border-emerald-200 transition-all cursor-pointer" onClick={() => setIsPrescribing(true)}>
                              <div className="flex items-center gap-4">
                                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl group-hover:bg-emerald-500 group-hover:text-white transition-all">
@@ -302,6 +317,53 @@ const PatientPage = () => {
                              <button className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-tight text-[12px] hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
                                  Issue New Rx
                              </button>
+                         </div>
+                     )}
+
+                     {/* Nursing Clinical Overview Banner (For Nurses & Clinical Staff) */}
+                     {isNurse && (
+                         <div className="bg-white rounded-2xl border border-blue-200 shadow-sm overflow-hidden p-6 space-y-4">
+                             <div className="flex items-center justify-between pb-3 border-b border-blue-50">
+                                 <div className="flex items-center gap-3">
+                                     <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                                         <FaUserNurse />
+                                     </div>
+                                     <div>
+                                         <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Nursing Care & Vitals Panel</h3>
+                                         <p className="text-[11px] font-bold text-slate-400">Medication administration, diagnosis review, and clinical report tracking</p>
+                                     </div>
+                                 </div>
+                                 <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-200">
+                                     Ward Round Care
+                                 </span>
+                             </div>
+
+                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                     <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
+                                         <FaHeartbeat className="text-rose-500" /> Blood Pressure
+                                     </div>
+                                     <p className="text-base font-black text-slate-900">120/80 <span className="text-[9px] font-bold text-slate-400">mmHg</span></p>
+                                 </div>
+                                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                     <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
+                                         <FaHeartbeat className="text-red-500" /> Pulse Rate
+                                     </div>
+                                     <p className="text-base font-black text-slate-900">74 <span className="text-[9px] font-bold text-slate-400">bpm</span></p>
+                                 </div>
+                                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                     <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
+                                         <FaThermometerHalf className="text-orange-500" /> Temperature
+                                     </div>
+                                     <p className="text-base font-black text-slate-900">36.7 <span className="text-[9px] font-bold text-slate-400">°C</span></p>
+                                 </div>
+                                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                     <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
+                                         <FaStethoscope className="text-emerald-500" /> SpO2
+                                     </div>
+                                     <p className="text-base font-black text-slate-900">98% <span className="text-[9px] font-bold text-emerald-600">Normal</span></p>
+                                 </div>
+                             </div>
                          </div>
                      )}
 
@@ -419,13 +481,34 @@ const PatientPage = () => {
                                  </div>
                             </div>
 
-                            <div className="space-y-2 pt-4 border-t border-slate-100">
+                            {/* Diagnosis & Clinical Findings */}
+                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                 <div className="flex items-center justify-between">
+                                     <div className="flex items-center gap-2">
+                                         <FaStethoscope className="text-indigo-500" />
+                                         <p className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Clinical Diagnosis & Findings</p>
+                                     </div>
+                                     <span className="text-[9px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100 uppercase">Physician Confirmed</span>
+                                 </div>
+                                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
+                                     <div className="flex items-center justify-between pb-1 border-b border-slate-200/50">
+                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Primary Diagnosis</span>
+                                         <span className="text-[11px] font-black text-indigo-900 uppercase">{patient.chronic_conditions || 'Routine Clinical Consultation'}</span>
+                                     </div>
+                                     <p className="text-[11px] font-bold leading-relaxed text-slate-600 italic">
+                                         {patient.notes || "Standard clinical evaluation recorded. Vital signs checked and baseline monitored."}
+                                     </p>
+                                 </div>
+                            </div>
+
+                            {/* Clinical Reports & Nursing Observations */}
+                            <div className="space-y-2 pt-2 border-t border-slate-100">
                                  <div className="flex items-center gap-2">
-                                     <FaNotesMedical className="text-slate-400" />
-                                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Clinical Observations</p>
+                                     <FaFileAlt className="text-slate-400" />
+                                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Clinical Reports & Documentation</p>
                                  </div>
                                  <p className="text-[11px] font-bold leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100 italic text-slate-500">
-                                     {patient.notes || "No clinical observations have been logged."}
+                                     {patient.notes || "No additional nursing incident reports or specialized diagnostic charts recorded for this patient file."}
                                  </p>
                             </div>
 

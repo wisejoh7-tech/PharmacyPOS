@@ -124,9 +124,6 @@ const AdminLogin = () => {
 
           {/* Card Footer */}
           <div className="card-footer-info">
-            <p className="account-help-text">
-              Need an account? <Link to="/staff/new" className="contact-admin-link">Contact Administrator</Link>
-            </p>
             <p className="copyright-text">
               © {new Date().getFullYear()} {shopName}. All Rights Reserved.
             </p>

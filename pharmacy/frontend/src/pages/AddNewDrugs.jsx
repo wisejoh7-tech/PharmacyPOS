@@ -16,9 +16,10 @@ const AddNewDrugs = () => {
    const [loading, setLoading] = useState(false);
 
    useEffect(() => {
-      const canManageInventory = user?.isAdmin || (user?.role && ['admin', 'administrator', 'manager', 'director', 'staff', 'pharmacist', 'general'].includes(user.role.toLowerCase())) || !!user;
+      const role = (user?.role || '').toLowerCase();
+      const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
       if (user && !canManageInventory) {
-         toast.error("Unauthorized access denied.");
+         toast.error("Unauthorized access denied. Admin or Sales Rep permission required.");
          navigate('/inventory');
       }
    }, [user, navigate]);

@@ -103,7 +103,7 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/categories" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['sales_rep']}>
               <Layout>
                 <CategoryManagement />
               </Layout>
@@ -124,154 +124,154 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/staff/new" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <StaffRegistration />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/staff/edit/:id" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <StaffRegistration />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/staff" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <StaffManagement />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/staff/dashboards" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <StaffSalesDashboard />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/reports/sales" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['sales_rep']}>
               <Layout>
                 <SalesReport />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/reports/inventory" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['sales_rep']}>
               <Layout>
                 <InventoryTurnover />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/reports/attendance" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <StaffAttendanceReport />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/reports/performance" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <StaffPerformanceReport />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/expenses" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <ExpenseManagement />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/financials" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <Financials />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/pos" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['sales_attendant', 'sales_rep']}>
               <Layout>
                 <PointOfSales />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/sales/return" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['sales_attendant', 'sales_rep']}>
               <Layout>
                 <SaleReturn />
               </Layout>
             </PrivateRoute>
           } />
            <Route path="/prescriptions/upload" element={
-             <PrivateRoute>
+             <PrivateRoute allowedRoles={['pharmacist']}>
                <Layout>
                  <UploadPrescription />
                </Layout>
              </PrivateRoute>
            } />
            <Route path="/prescriptions/review" element={
-             <PrivateRoute>
+             <PrivateRoute allowedRoles={['pharmacist', 'nurse']}>
                <Layout>
                  <DetailPrescriptionReview />
                </Layout>
              </PrivateRoute>
            } />
             <Route path="/prescriptions/new" element={
-               <PrivateRoute>
+               <PrivateRoute allowedRoles={['pharmacist']}>
                  <Layout>
                    <Prescription />
                  </Layout>
                </PrivateRoute>
              } />
            <Route path="/prescriptions/manage" element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['pharmacist', 'nurse']}>
                 <Layout>
                   <PrescriptionManagement />
                 </Layout>
               </PrivateRoute>
             } />
           <Route path="/inventory" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['sales_rep']}>
               <Layout>
                 <InventoryManagement />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/inventory/new" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['sales_rep']}>
               <Layout>
                 <AddNewDrugs />
               </Layout>
             </PrivateRoute>
           } />
           <Route path="/inventory/edit/:id" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['sales_rep']}>
               <Layout>
                 <AddNewDrugs />
               </Layout>
             </PrivateRoute>
           } />
            <Route path="/customers" element={
-             <PrivateRoute>
+             <PrivateRoute allowedRoles={['pharmacist', 'nurse']}>
                <Layout>
                  <CustomerManagement />
                </Layout>
              </PrivateRoute>
            } />
            <Route path="/customers/new" element={
-             <PrivateRoute>
+             <PrivateRoute allowedRoles={['pharmacist']}>
                <Layout>
                  <AddCustomer />
                </Layout>
              </PrivateRoute>
            } />
            <Route path="/customers/detail/:id" element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['pharmacist', 'nurse']}>
                 <Layout>
                   <PatientPage />
                 </Layout>
@@ -280,49 +280,49 @@ function App() {
 
            {/* Supermarket Routes */}
            <Route path="/supermarket" element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['sales_rep']}>
                 <Layout>
                   <SupermarketDashboard />
                 </Layout>
               </PrivateRoute>
             } />
             <Route path="/supermarket/inventory" element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['sales_rep']}>
                 <Layout>
                   <SupermarketInventory />
                 </Layout>
               </PrivateRoute>
             } />
             <Route path="/supermarket/inventory/new" element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['sales_rep']}>
                 <Layout>
                   <AddNewProduct />
                 </Layout>
               </PrivateRoute>
             } />
             <Route path="/supermarket/inventory/edit/:id" element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['sales_rep']}>
                 <Layout>
                   <AddNewProduct />
                 </Layout>
               </PrivateRoute>
             } />
             <Route path="/supermarket/pos" element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['sales_attendant', 'sales_rep']}>
                 <Layout>
                   <SupermarketPOS />
                 </Layout>
               </PrivateRoute>
             } />
             <Route path="/settings" element={
-              <PrivateRoute>
+              <PrivateRoute adminOnly={true}>
                 <Layout>
                   <Settings />
                 </Layout>
               </PrivateRoute>
             } />
             <Route path="/settings/notifications" element={
-              <PrivateRoute>
+              <PrivateRoute adminOnly={true}>
                 <Layout>
                   <NotificationSettings />
                 </Layout>
