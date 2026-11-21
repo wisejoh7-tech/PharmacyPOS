@@ -36,13 +36,16 @@ const CustomerSelector = ({ value, onChange, tone = 'emerald' }) => {
         email: null,
       });
       const customer = response.data;
+      if (!customer?.id) {
+        throw new Error('Customer registration returned no customer ID.');
+      }
       setCustomers((current) => [...current, customer]);
       onChange(String(customer.id));
       setForm({ first_name: '', last_name: '', phone_number: '' });
       setOpen(false);
       toast.success('Customer registered and attached to this sale.');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Customer registration failed.');
+      toast.error(error.response?.data?.detail || error.message || 'Customer registration failed.');
     } finally {
       setSaving(false);
     }

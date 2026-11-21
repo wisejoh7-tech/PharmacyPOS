@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import CustomerSelector from './CustomerSelector';
 import customerService from '../services/customerService';
+import toast from 'react-hot-toast';
 
 vi.mock('../services/customerService', () => ({
   default: {
@@ -57,5 +58,42 @@ describe('CustomerSelector quick registration', () => {
     fireEvent.submit(screen.getByRole('button', { name: /register customer/i }).closest('form'));
 
     expect(customerService.createCustomer).not.toHaveBeenCalled();
+  });
+
+  it('shows the API error and keeps the form open when registration fails', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    customerService.createCustomer.mockRejectedValue({
+      response: { data: { detail: 'A customer with this phone already exists.' } },
+    });
+
+    render(<CustomerSelector value="" onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: /new customer/i }));
+    await user.type(screen.getByPlaceholderText('First name'), 'Ada');
+    await user.type(screen.getByPlaceholderText('Last name'), 'Lovelace');
+    await user.type(screen.getByPlaceholderText('Phone number'), '08012345678');
+    await user.click(screen.getByRole('button', { name: /register customer/i }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('A customer with this phone already exists.'));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', { name: /register customer/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /register customer/i })).toBeEnabled();
+  });
+
+  it('rejects a successful response without a customer ID', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    customerService.createCustomer.mockResolvedValue({ data: { first_name: 'Ada' } });
+
+    render(<CustomerSelector value="" onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: /new customer/i }));
+    await user.type(screen.getByPlaceholderText('First name'), 'Ada');
+    await user.type(screen.getByPlaceholderText('Last name'), 'Lovelace');
+    await user.type(screen.getByPlaceholderText('Phone number'), '08012345678');
+    await user.click(screen.getByRole('button', { name: /register customer/i }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Customer registration returned no customer ID.'));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', { name: /register customer/i })).toBeInTheDocument();
   });
 });
