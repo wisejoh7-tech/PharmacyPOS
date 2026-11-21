@@ -3,6 +3,25 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Category, Drug, Staff, Customer, Prescription, PrescriptionItem, Sale, SaleItem, SaleReturn, Product, SupermarketSale, SupermarketSaleItem, SystemSettings, Expense
 
+SALES_STAFF_ROLE_MARKERS = ('sales rep', 'sales-rep', 'sales attendant', 'sales-attendant', 'cashier', 'attendant')
+
+def is_sales_staff(staff):
+    role = str(getattr(staff, 'role', '') or '').strip().lower().replace('_', ' ')
+    return any(marker in role for marker in SALES_STAFF_ROLE_MARKERS)
+
+def is_admin_role(staff):
+    role = str(getattr(staff, 'role', '') or '').strip().lower()
+    return any(marker in role for marker in ('admin', 'administrator', 'manager', 'director'))
+
+def request_staff_record(serializer):
+    user = getattr(serializer.context.get('request'), 'user', None)
+    if not user or not getattr(user, 'is_authenticated', False):
+        return None
+    staff = Staff.objects.filter(employee_id__iexact=user.username).first()
+    if not staff and user.email:
+        staff = Staff.objects.filter(email__iexact=user.email).first()
+    return staff
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         raw_username = (attrs.get('username') or '').strip()
@@ -26,6 +45,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         department = "Management" if user.is_superuser else "General"
         full_name = user.get_full_name() or user.username
 
+        staff = None
         try:
             staff = Staff.objects.filter(employee_id__iexact=user.username).first()
             if not staff and user.email:
@@ -38,7 +58,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         except Exception:
             pass
 
-        is_admin = bool(user.is_superuser or (role and str(role).lower() in ['admin', 'administrator', 'manager', 'director']))
+        is_admin = bool(user.is_superuser or (staff and is_admin_role(staff)) or (role and str(role).lower() in ['admin', 'administrator', 'manager', 'director']))
 
         data['username'] = user.username
         data['role'] = role
@@ -84,6 +104,11 @@ class DrugSerializer(serializers.ModelSerializer):
     class Meta:
         model = Drug
         fields = '__all__'
+
+    def validate(self, attrs):
+        if is_sales_staff(request_staff_record(self)):
+            attrs.pop('unit_price', None)
+        return attrs
 
     def get_category_name(self, obj):
         if obj.category_obj:
@@ -211,11 +236,15 @@ class SaleItemSerializer(serializers.ModelSerializer):
 class SaleSerializer(serializers.ModelSerializer):
     items = SaleItemSerializer(many=True, read_only=True)
     staff_name = serializers.ReadOnlyField(source='staff.full_name')
-    customer_name = serializers.ReadOnlyField(source='customer.first_name') # Simplifying to first name or you could use a method
+    customer_name = serializers.SerializerMethodField()
+    customer_phone = serializers.ReadOnlyField(source='customer.phone_number')
+
+    def get_customer_name(self, obj):
+        return f'{obj.customer.first_name} {obj.customer.last_name}'.strip() if obj.customer else 'Walk-in Customer'
 
     class Meta:
         model = Sale
-        fields = ['id', 'transaction_id', 'customer', 'customer_name', 'total_amount', 'payment_method', 'staff', 'staff_name', 'created_at', 'items']
+        fields = ['id', 'transaction_id', 'customer', 'customer_name', 'customer_phone', 'total_amount', 'payment_method', 'staff', 'staff_name', 'created_at', 'items']
 
 class SaleReturnSerializer(serializers.ModelSerializer):
     class Meta:
@@ -228,6 +257,11 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+
+    def validate(self, attrs):
+        if is_sales_staff(request_staff_record(self)):
+            attrs.pop('unit_price', None)
+        return attrs
 
     def get_category_name(self, obj):
         if obj.category_obj:
@@ -268,10 +302,15 @@ class SupermarketSaleItemSerializer(serializers.ModelSerializer):
 class SupermarketSaleSerializer(serializers.ModelSerializer):
     items = SupermarketSaleItemSerializer(many=True, read_only=True)
     staff_name = serializers.ReadOnlyField(source='staff.full_name')
+    customer_name = serializers.SerializerMethodField()
+    customer_phone = serializers.ReadOnlyField(source='customer.phone_number')
+
+    def get_customer_name(self, obj):
+        return f'{obj.customer.first_name} {obj.customer.last_name}'.strip() if obj.customer else 'Walk-in Customer'
 
     class Meta:
         model = SupermarketSale
-        fields = ['id', 'transaction_id', 'total_amount', 'payment_method', 'staff', 'staff_name', 'created_at', 'items']
+        fields = ['id', 'transaction_id', 'customer', 'customer_name', 'customer_phone', 'total_amount', 'payment_method', 'staff', 'staff_name', 'created_at', 'items']
 
 class SystemSettingsSerializer(serializers.ModelSerializer):
     class Meta:

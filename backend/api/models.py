@@ -121,6 +121,7 @@ class Product(models.Model):
 
 class SupermarketSale(models.Model):
     transaction_id = models.CharField(max_length=50, unique=True)
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_method = models.CharField(max_length=50) # Cash, Card
     staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True, related_name='supermarket_sales')

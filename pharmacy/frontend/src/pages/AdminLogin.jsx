@@ -37,7 +37,9 @@ const AdminLogin = () => {
     const success = await login(username, password);
     setIsLoading(false);
     if (success) {
-      navigate('/');
+      const role = (localStorage.getItem('user_role') || '').toLowerCase();
+      const isSalesStaff = role.includes('rep') || role.includes('attendant') || role.includes('cashier');
+      navigate(isSalesStaff ? '/pos' : '/');
     }
   };
 
@@ -51,7 +53,7 @@ const AdminLogin = () => {
           {/* Logo Branding Header */}
           <div className="pharmacist-logo-container">
             <div className="mortar-logo-icon">
-              <PharmacyLogo className="w-10 h-10 object-contain" />
+              <img src="/pharmacy-logo.jpeg" alt="Pharmacy" className="w-10 h-10 object-contain rounded-lg" />
             </div>
             <div className="brand-text-block">
               <span className="brand-title-primary">New Light</span>

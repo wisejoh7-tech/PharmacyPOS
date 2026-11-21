@@ -55,8 +55,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'INVENTORY & RX',
       items: [
-        { name: 'Pharmacy Stock', icon: <FaBox />, path: '/inventory', roles: ['sales_rep'] },
-        { name: 'Supermarket Hub', icon: <FaShoppingCart />, path: '/supermarket', roles: ['sales_rep'] },
+        { name: 'Pharmacy Stock', icon: <FaBox />, path: '/inventory', roles: ['sales_attendant', 'sales_rep'] },
+        { name: 'Supermarket Hub', icon: <FaShoppingCart />, path: '/supermarket', roles: ['sales_attendant', 'sales_rep'] },
         { name: 'Categories', icon: <FaFolder />, path: '/categories', roles: ['sales_rep'] },
         { name: 'Prescriptions', icon: <FaBriefcaseMedical />, path: '/prescriptions/review', roles: ['pharmacist', 'nurse'] },
       ]
@@ -64,7 +64,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'MANAGEMENT',
       items: [
-        { name: 'Patients & Clients', icon: <FaUsers />, path: '/customers', roles: ['pharmacist', 'nurse'] },
+        { name: 'Patients & Clients', icon: <FaUsers />, path: '/customers', roles: ['sales_attendant', 'sales_rep', 'pharmacist', 'nurse'] },
         { name: 'Staff List', icon: <FaUsers />, path: '/staff', roles: ['admin'] },
         { name: 'Staff Registration', icon: <FaUserPlus />, path: '/staff/new', roles: ['admin'] },
         { name: 'Staff Dashboards', icon: <FaChartLine />, path: '/staff/dashboards', roles: ['admin'] },

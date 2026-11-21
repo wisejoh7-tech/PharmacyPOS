@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
 import supermarketSaleService from '../services/supermarketSaleService';
@@ -10,8 +10,12 @@ import {
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import customerService from '../services/customerService';
+import { AuthContext } from '../context/AuthContext';
+import CustomerSelector from '../components/CustomerSelector';
 
 const SupermarketPOS = () => {
+  const { user } = useContext(AuthContext);
   const [cart, setCart] = useState(() => {
     const saved = localStorage.getItem('supermarket_cart');
     return saved ? JSON.parse(saved) : [];
@@ -21,6 +25,7 @@ const SupermarketPOS = () => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [staffList, setStaffList] = useState([]);
   const [staffId, setStaffId] = useState('');
+  const [customerId, setCustomerId] = useState('');
   const [lastSale, setLastSale] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -28,6 +33,12 @@ const SupermarketPOS = () => {
    const [lastScanned, setLastScanned] = useState(null);
    const [autoPrint, setAutoPrint] = useState(false);
    const scanInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!user || !staffList.length) return;
+    const signedInStaff = staffList.find((staff) => staff.employee_id?.toLowerCase() === user.username?.toLowerCase() || staff.email?.toLowerCase() === user.username?.toLowerCase() || staff.full_name === user.fullName);
+    if (signedInStaff) setStaffId(String(signedInStaff.id));
+  }, [user, staffList]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -185,14 +196,18 @@ const SupermarketPOS = () => {
         await supermarketSaleService.processSale({
            transaction_id: txId,
            staff: staffId,
+           customer: customerId || null,
            total_amount: totalAmount.toFixed(2),
            payment_method: 'Cash',
            items: items
         });
        
+        const customer = customerId ? (await customerService.getCustomer(customerId)).data : null;
         setLastSale({
            id: txId,
            cashier: staffList.find(s => s.id == staffId),
+           customerName: customer ? `${customer.first_name} ${customer.last_name}` : 'Walk-in Customer',
+           customerPhone: customer?.phone_number || '—',
            items: cart,
            total: totalAmount,
            date: new Date().toLocaleString()
@@ -295,6 +310,7 @@ const SupermarketPOS = () => {
             </div>
 
              <div className="flex items-center gap-3">
+               <Link to="/pos" className="btn-retail text-[12px] py-1.5 px-3 uppercase tracking-widest text-emerald-600 border-emerald-200">Switch to Pharmacy POS</Link>
                <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-[11px] font-black uppercase tracking-wider">
                 <FaBarcode className="text-blue-600 animate-pulse" /> Scanner Connected
                </span>
@@ -425,6 +441,7 @@ const SupermarketPOS = () => {
               <select 
                 value={staffId}
                 onChange={(e) => setStaffId(e.target.value)}
+                disabled={!user?.isAdmin && (user?.role || "").toLowerCase().includes("sales")}
                 className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[13px] font-bold outline-none appearance-none"
               >
                 <option value="">Select Cashier...</option>
@@ -435,6 +452,7 @@ const SupermarketPOS = () => {
             </div>
          </div>
 
+         <CustomerSelector value={customerId} onChange={setCustomerId} tone="blue" />
          <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/30 scrollbar-hide">
            {cart.length === 0 ? (
              <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-20">
@@ -492,6 +510,8 @@ const SupermarketPOS = () => {
                  <div className="flex justify-between"><span>STX ID:</span><span className="font-black text-slate-900">{lastSale.id}</span></div>
                  <div className="flex justify-between"><span>Date:</span><span className="font-black text-slate-900 font-sans">{lastSale.date}</span></div>
                  <div className="flex justify-between"><span>Cashier:</span><span className="font-black text-slate-900">{lastSale.cashier?.full_name || 'N/A'}</span></div>
+                 <div className="flex justify-between"><span>Customer:</span><span className="font-black text-slate-900">{lastSale.customerName}</span></div>
+                 <div className="flex justify-between"><span>Phone:</span><span className="font-black text-slate-900">{lastSale.customerPhone}</span></div>
               </div>
               <div className="space-y-2 border-b border-dashed border-slate-200 mb-4 pb-4">
                  {lastSale.items.map(item => (
@@ -530,6 +550,8 @@ const SupermarketPOS = () => {
                     <div className="flex justify-between"><span>ID:</span><span>{lastSale.id}</span></div>
                     <div className="flex justify-between"><span>Date:</span><span>{lastSale.date}</span></div>
                     <div className="flex justify-between"><span>Cashier:</span><span>{lastSale.cashier?.full_name}</span></div>
+                    <div className="flex justify-between"><span>Customer:</span><span>{lastSale.customerName}</span></div>
+                    <div className="flex justify-between"><span>Phone:</span><span>{lastSale.customerPhone}</span></div>
                 </div>
                 <div className="mb-4 border-b border-dashed pb-4 text-xs space-y-2">
                     {lastSale.items.map(item => (

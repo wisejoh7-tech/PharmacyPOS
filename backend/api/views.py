@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models import Sum, Count, F
+from decimal import Decimal
 from .models import Category, Drug, Staff, Customer, Prescription, PrescriptionItem, Sale, SaleItem, SaleReturn, Product, SupermarketSale, SupermarketSaleItem, SystemSettings, Expense
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
@@ -14,6 +15,18 @@ from .serializers import (
     ProductSerializer, SupermarketSaleSerializer, SystemSettingsSerializer, UserProfileSerializer, UserSerializer, ExpenseSerializer,
     CustomTokenObtainPairSerializer
 )
+
+def staff_for_request(request):
+    if not getattr(request.user, 'is_authenticated', False):
+        return None
+    staff = Staff.objects.filter(employee_id__iexact=request.user.username).first()
+    if not staff and request.user.email:
+        staff = Staff.objects.filter(email__iexact=request.user.email).first()
+    return staff
+
+def is_sales_staff(staff):
+    role = str(getattr(staff, 'role', '') or '').lower().replace('_', ' ')
+    return any(marker in role for marker in ('sales rep', 'sales-rep', 'sales attendant', 'sales-attendant', 'cashier', 'attendant'))
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -95,7 +108,8 @@ class SaleViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             data = request.data
             items_data = data.pop('items', [])
-            staff_id = data.get('staff')
+            authenticated_staff = staff_for_request(request)
+            staff_id = authenticated_staff.id if authenticated_staff and is_sales_staff(authenticated_staff) else data.get('staff')
             
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
@@ -113,18 +127,25 @@ class SaleViewSet(viewsets.ModelViewSet):
                 
                 if drug.stock < item['quantity']:
                     raise serializers.ValidationError(f"Insufficient stock for {drug.name}. Requested: {item['quantity']}, Available: {drug.stock}")
+
+                unit_price = drug.unit_price if authenticated_staff and is_sales_staff(authenticated_staff) else item['unit_price']
+                subtotal = unit_price * item['quantity'] if authenticated_staff and is_sales_staff(authenticated_staff) else item['subtotal']
                 
                 SaleItem.objects.create(
                     sale=sale,
                     drug=drug,
                     quantity=item['quantity'],
-                    unit_price=item['unit_price'],
-                    subtotal=item['subtotal']
+                    unit_price=unit_price,
+                    subtotal=subtotal
                 )
                 
                 # Update stock
                 drug.stock -= item['quantity']
                 drug.save()
+
+            if authenticated_staff and is_sales_staff(authenticated_staff):
+                sale.total_amount = sum((item.unit_price * item.quantity for item in sale.items.all()), Decimal('0')) * Decimal('1.05')
+                sale.save(update_fields=['total_amount'])
 
             # Re-serialize to include items in the response
             full_serializer = self.get_serializer(sale)
@@ -231,7 +252,8 @@ class SupermarketSaleViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             data = request.data
             items_data = data.pop('items', [])
-            staff_id = data.get('staff')
+            authenticated_staff = staff_for_request(request)
+            staff_id = authenticated_staff.id if authenticated_staff and is_sales_staff(authenticated_staff) else data.get('staff')
             
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
@@ -249,18 +271,25 @@ class SupermarketSaleViewSet(viewsets.ModelViewSet):
                 
                 if product.stock < item['quantity']:
                     raise serializers.ValidationError(f"Insufficient stock for {product.name}. Requested: {item['quantity']}, Available: {product.stock}")
+
+                unit_price = product.unit_price if authenticated_staff and is_sales_staff(authenticated_staff) else item['unit_price']
+                subtotal = unit_price * item['quantity'] if authenticated_staff and is_sales_staff(authenticated_staff) else item['subtotal']
                 
                 SupermarketSaleItem.objects.create(
                     sale=sale,
                     product=product,
                     quantity=item['quantity'],
-                    unit_price=item['unit_price'],
-                    subtotal=item['subtotal']
+                    unit_price=unit_price,
+                    subtotal=subtotal
                 )
                 
                 # Update stock
                 product.stock -= item['quantity']
                 product.save()
+
+            if authenticated_staff and is_sales_staff(authenticated_staff):
+                sale.total_amount = sum((item.unit_price * item.quantity for item in sale.items.all()), Decimal('0')) * Decimal('1.075')
+                sale.save(update_fields=['total_amount'])
 
             # Re-serialize to include items in the response
             full_serializer = self.get_serializer(sale)

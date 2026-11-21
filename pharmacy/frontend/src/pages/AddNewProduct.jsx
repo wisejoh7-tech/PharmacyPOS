@@ -29,7 +29,8 @@ const AddNewProduct = () => {
     const [editingCategory, setEditingCategory] = useState(null);
 
     const role = (user?.role || '').toLowerCase();
-    const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
+    const isSalesStaff = role.includes('rep') || role.includes('attendant') || role.includes('cashier');
+    const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep') || role.includes('attendant') || role.includes('cashier');
 
     useEffect(() => {
         if (user && !canManageInventory) {
@@ -107,8 +108,8 @@ const AddNewProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name?.trim() || (!formData.category_obj && !formData.category?.trim()) || formData.unit_price === '' || formData.unit_price === null || formData.unit_price === undefined) {
-            return toast.error("Required fields missing: Name, Category, Price");
+        if (!formData.name?.trim() || (!formData.category_obj && !formData.category?.trim()) || (!isSalesStaff && (formData.unit_price === '' || formData.unit_price === null || formData.unit_price === undefined))) {
+            return toast.error("Required fields missing: Name and Category");
         }
         try {
             setLoading(true);
@@ -126,7 +127,8 @@ const AddNewProduct = () => {
                 ...formData,
                 barcode: formData.barcode?.trim() || null,
                 stock_date: parseDate(formData.stock_date),
-                expiry_date: parseDate(formData.expiry_date)
+                expiry_date: parseDate(formData.expiry_date),
+                unit_price: isSalesStaff ? undefined : formData.unit_price
             };
 
             await productService.addProduct(payload);
@@ -284,7 +286,7 @@ const AddNewProduct = () => {
 
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                                {!isSalesStaff && <div className="space-y-2">
                                     <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Unit Price (₦) <span className="text-red-500">*</span></label>
                                     <input 
                                         required
@@ -296,7 +298,7 @@ const AddNewProduct = () => {
                                         placeholder="0.00"
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-[13px] font-black focus:ring-2 focus:ring-blue-50 transition-all outline-none"
                                     />
-                                </div>
+                                </div>}
                                 <div className="space-y-2">
                                     <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Stock Level</label>
                                     <input 

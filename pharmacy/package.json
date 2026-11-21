@@ -54,7 +54,7 @@
   "build": {
     "appId": "com.newlight.pharmacy",
     "productName": "NewLightMedicineAndStore",
-    "icon": "build/icon.ico",
+    "icon": "build/icon.png",
     "directories": {
       "output": "dist_electron"
     },

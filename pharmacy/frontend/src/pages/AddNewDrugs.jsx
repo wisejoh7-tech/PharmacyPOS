@@ -14,10 +14,11 @@ const AddNewDrugs = () => {
    const { user } = useContext(AuthContext);
    const isEdit = !!id;
    const [loading, setLoading] = useState(false);
+   const role = (user?.role || '').toLowerCase();
+   const isSalesStaff = role.includes('rep') || role.includes('attendant') || role.includes('cashier');
 
    useEffect(() => {
-      const role = (user?.role || '').toLowerCase();
-      const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
+      const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep') || role.includes('attendant') || role.includes('cashier');
       if (user && !canManageInventory) {
          toast.error("Unauthorized access denied. Admin or Sales Rep permission required.");
          navigate('/inventory');
@@ -157,8 +158,8 @@ const AddNewDrugs = () => {
    };
 
    const handleSave = async () => {
-      if (!formData.name?.trim() || (!formData.category_obj && !formData.category?.trim()) || formData.unit_price === '' || formData.unit_price === null || formData.unit_price === undefined) {
-         return toast.error('Required fields missing: Name, Category, Price');
+      if (!formData.name?.trim() || (!formData.category_obj && !formData.category?.trim()) || (!isSalesStaff && (formData.unit_price === '' || formData.unit_price === null || formData.unit_price === undefined))) {
+         return toast.error('Required fields missing: Name and Category');
       }
 
       try {
@@ -178,7 +179,7 @@ const AddNewDrugs = () => {
             barcode: formData.barcode?.trim() || null,
             expiry_date: parseDate(formData.expiry_date),
             stock_date: parseDate(formData.stock_date),
-            unit_price: parseFloat(formData.unit_price) || 0,
+            unit_price: isSalesStaff ? undefined : (parseFloat(formData.unit_price) || 0),
             stock: parseInt(formData.stock) || 0,
             reorder_level: parseInt(formData.reorder_level) || 10
          };
@@ -355,15 +356,15 @@ const AddNewDrugs = () => {
                         />
                      </div>
                      <div className="space-y-2">
-                        <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Price (₦) <span className="text-red-500">*</span></label>
-                        <input
+                        {!isSalesStaff && <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Price (₦) <span className="text-red-500">*</span></label>}
+                        {!isSalesStaff && <input
                            type="number"
                            step="0.01"
                            name="unit_price"
                            value={formData.unit_price}
                            onChange={handleChange}
                            className="w-full px-4 py-2.5 bg-blue-50/50 border border-blue-100 rounded-lg text-xs font-black text-blue-700 tabular-nums focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                        />
+                        />}
                      </div>
                   </div>
 

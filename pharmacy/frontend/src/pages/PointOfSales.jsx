@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import drugService from '../services/drugService';
 import categoryService from '../services/categoryService';
 import posService from '../services/posService';
@@ -11,8 +11,12 @@ import {
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import customerService from '../services/customerService';
+import { AuthContext } from '../context/AuthContext';
+import CustomerSelector from '../components/CustomerSelector';
 
 const PointOfSales = () => {
+  const { user } = useContext(AuthContext);
   const [cart, setCart] = useState(() => {
     const saved = localStorage.getItem('pharmacy_cart');
     return saved ? JSON.parse(saved) : [];
@@ -22,12 +26,19 @@ const PointOfSales = () => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [staffList, setStaffList] = useState([]);
   const [staffId, setStaffId] = useState('');
+  const [customerId, setCustomerId] = useState('');
   const [lastSale, setLastSale] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categoriesList, setCategoriesList] = useState([]);
   const [lastScanned, setLastScanned] = useState(null);
   const scanInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!user || !staffList.length) return;
+    const signedInStaff = staffList.find((staff) => staff.employee_id?.toLowerCase() === user.username?.toLowerCase() || staff.email?.toLowerCase() === user.username?.toLowerCase() || staff.full_name === user.fullName);
+    if (signedInStaff) setStaffId(String(signedInStaff.id));
+  }, [user, staffList]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -205,7 +216,7 @@ const PointOfSales = () => {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return toast.error("Cart is empty");
-    if (!staffId) return toast.error("Please select a pharmacist");
+    if (!staffId) return toast.error("Please select the attendant");
 
     try {
       setIsCheckingOut(true);
@@ -220,15 +231,19 @@ const PointOfSales = () => {
       await posService.createSale({
         transaction_id: txId,
         staff: staffId,
+        customer: customerId || null,
         total_amount: totalAmount.toFixed(2),
         payment_method: 'Cash',
         items: items
       });
 
+      const customer = customerId ? (await customerService.getCustomer(customerId)).data : null;
       setLastSale({
         id: txId,
         pharmacist: staffList.find(s => s.id == staffId),
         sellerName: staffList.find(s => s.id == staffId)?.full_name || 'N/A',
+        customerName: customer ? `${customer.first_name} ${customer.last_name}` : 'Walk-in Customer',
+        customerPhone: customer?.phone_number || '—',
         items: cart,
         total: totalAmount,
         date: new Date().toLocaleString()
@@ -298,6 +313,7 @@ const PointOfSales = () => {
             </div>
 
             <div className="flex items-center gap-3">
+               <Link to="/supermarket/pos" className="btn-pharmacy text-[12px] py-1.5 px-3 uppercase tracking-widest text-blue-600 border-blue-200">Switch to Supermarket POS</Link>
                <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-[11px] font-black uppercase tracking-wider">
                 <FaBarcode className="text-emerald-600 animate-pulse" /> Scanner Connected
                </span>
@@ -402,12 +418,13 @@ const PointOfSales = () => {
         </header>
 
         <div className="p-4 border-b border-slate-50">
-          <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Authorize Pharmacist</label>
+          <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Signed-in attendant</label>
           <div className="relative">
             <FaUserMd className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 text-xs" />
             <select
               value={staffId}
               onChange={(e) => setStaffId(e.target.value)}
+              disabled={!user?.isAdmin && (user?.role || "").toLowerCase().includes("sales")}
               className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[13px] font-bold outline-none appearance-none"
             >
               <option value="">Choose Staff...</option>
@@ -418,6 +435,7 @@ const PointOfSales = () => {
           </div>
         </div>
 
+        <CustomerSelector value={customerId} onChange={setCustomerId} />
         <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/30 scrollbar-hide">
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-20">
@@ -469,6 +487,8 @@ const PointOfSales = () => {
             <div className="space-y-2 text-[12px] mb-4 pb-4 border-b border-dashed">
               <div className="flex justify-between"><span>TX ID:</span><span className="font-black">{lastSale.id}</span></div>
               <div className="flex justify-between"><span>Seller:</span><span className="font-black">{lastSale.sellerName}</span></div>
+              <div className="flex justify-between"><span>Customer:</span><span className="font-black">{lastSale.customerName}</span></div>
+              <div className="flex justify-between"><span>Phone:</span><span className="font-black">{lastSale.customerPhone}</span></div>
               <div className="flex justify-between"><span>Total:</span><span className="font-black">₦{lastSale.total.toFixed(2)}</span></div>
             </div>
             <div className="mb-4 text-[12px] max-h-32 overflow-y-auto pr-1">
@@ -494,6 +514,14 @@ const PointOfSales = () => {
           </div>
         </div>
       )}
+      <div className="hidden print:block print:fixed print:inset-0 print:bg-white print:z-[200]">
+        {lastSale && <div className="p-8 w-full max-w-xs mx-auto text-black font-mono">
+          <div className="text-center mb-5"><img src="/pharmacy-logo.jpeg" alt="Pharmacy" className="w-16 h-16 object-contain mx-auto" /><h1 className="text-lg font-bold uppercase">Pharmacy Receipt</h1></div>
+          <div className="text-xs space-y-1 border-b border-dashed pb-3 mb-3"><div>Transaction: {lastSale.id}</div><div>Date: {lastSale.date}</div><div>Attendant: {lastSale.sellerName}</div><div>Customer: {lastSale.customerName}</div><div>Phone: {lastSale.customerPhone}</div></div>
+          <div className="text-xs space-y-2 border-b border-dashed pb-3 mb-3">{lastSale.items.map((item) => <div key={item.id} className="flex justify-between"><span>{item.name} x{item.quantity}</span><span>₦{(item.unitPrice * item.quantity).toFixed(2)}</span></div>)}</div>
+          <div className="flex justify-between font-bold"><span>TOTAL</span><span>₦{lastSale.total.toFixed(2)}</span></div>
+        </div>}
+      </div>
     </div>
   );
 };
