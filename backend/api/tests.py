@@ -490,3 +490,103 @@ assert 'api_drug' in tables
             pass
 
         self.assertEqual(proc.returncode, 0, f"Subprocess failed with stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}")
+
+
+class SalesRepInventoryWorkflowIntegrationTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        Staff.objects.create(
+            full_name='End-to-End Sales Rep',
+            email='e2e-rep@pharmacy.com',
+            phone_number='08000000001',
+            role='Sales Rep',
+            department='Sales',
+            employee_id='E2E-REP',
+        )
+        User.objects.create_user(
+            username='e2e-rep',
+            email='e2e-rep@pharmacy.com',
+            password='password123',
+            is_staff=True,
+        )
+
+    def authenticate_sales_rep(self):
+        login_response = self.client.post('/api/token/', {
+            'username': 'E2E-REP',
+            'password': 'password123',
+        })
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(login_response.data['role'], 'Sales Rep')
+        self.assertFalse(login_response.data['is_admin'])
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login_response.data['access']}")
+
+    def test_sales_rep_completes_inventory_management_workflow(self):
+        self.authenticate_sales_rep()
+
+        pharmacy_dashboard = self.client.get('/api/sales/dashboard-stats/')
+        supermarket_dashboard = self.client.get('/api/supermarket-sales/dashboard-stats/')
+        self.assertEqual(pharmacy_dashboard.status_code, status.HTTP_200_OK)
+        self.assertEqual(supermarket_dashboard.status_code, status.HTTP_200_OK)
+        self.assertIn('low_stock_count', pharmacy_dashboard.data)
+        self.assertIn('low_stock_count', supermarket_dashboard.data)
+
+        pharmacy_category = self.client.post('/api/categories/', {
+            'name': 'E2E Pharmacy Category',
+            'type': 'Pharmacy',
+        })
+        supermarket_category = self.client.post('/api/categories/', {
+            'name': 'E2E Supermarket Category',
+            'type': 'Supermarket',
+        })
+        self.assertEqual(pharmacy_category.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(supermarket_category.status_code, status.HTTP_201_CREATED)
+
+        drug_response = self.client.post('/api/drugs/', {
+            'name': 'E2E Sales Drug',
+            'dosage': '500mg',
+            'form': 'Tablet',
+            'unit_price': '999.99',
+            'stock': 12,
+            'reorder_level': 3,
+            'category_obj': pharmacy_category.data['id'],
+        })
+        product_response = self.client.post('/api/products/', {
+            'name': 'E2E Sales Product',
+            'unit_price': '888.88',
+            'stock': 20,
+            'reorder_level': 5,
+            'category_obj': supermarket_category.data['id'],
+        })
+        self.assertEqual(drug_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(product_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(drug_response.data['unit_price'], '0.00')
+        self.assertEqual(product_response.data['unit_price'], '0.00')
+
+        drug_id = drug_response.data['id']
+        product_id = product_response.data['id']
+        drug_update = self.client.patch(f'/api/drugs/{drug_id}/', {
+            'stock': 18,
+            'unit_price': '777.77',
+        })
+        product_update = self.client.patch(f'/api/products/{product_id}/', {
+            'stock': 25,
+            'unit_price': '666.66',
+        })
+        self.assertEqual(drug_update.status_code, status.HTTP_200_OK)
+        self.assertEqual(product_update.status_code, status.HTTP_200_OK)
+        self.assertEqual(drug_update.data['stock'], 18)
+        self.assertEqual(product_update.data['stock'], 25)
+        self.assertEqual(drug_update.data['unit_price'], '0.00')
+        self.assertEqual(product_update.data['unit_price'], '0.00')
+
+        pharmacy_inventory = self.client.get('/api/drugs/')
+        supermarket_inventory = self.client.get('/api/products/')
+        self.assertEqual(pharmacy_inventory.status_code, status.HTTP_200_OK)
+        self.assertEqual(supermarket_inventory.status_code, status.HTTP_200_OK)
+        self.assertTrue(any(item['id'] == drug_id for item in pharmacy_inventory.data))
+        self.assertTrue(any(item['id'] == product_id for item in supermarket_inventory.data))
+
+        self.assertEqual(self.client.delete(f'/api/drugs/{drug_id}/').status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self.client.delete(f'/api/products/{product_id}/').status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self.client.delete(f"/api/categories/{pharmacy_category.data['id']}/").status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self.client.delete(f"/api/categories/{supermarket_category.data['id']}/").status_code, status.HTTP_204_NO_CONTENT)
