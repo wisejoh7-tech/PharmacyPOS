@@ -501,7 +501,7 @@ const PointOfSales = () => {
             </div>
             <div className="space-y-2 text-[12px] mb-4 pb-4 border-b border-dashed">
               <div className="flex justify-between"><span>TX ID:</span><span className="font-black">{lastSale.id}</span></div>
-              <div className="flex justify-between"><span>Seller:</span><span className="font-black">{lastSale.sellerName}</span></div>
+              <div className="flex justify-between"><span>Attendant:</span><span className="font-black">{lastSale.sellerName}</span></div>
               <div className="flex justify-between"><span>Customer:</span><span className="font-black">{lastSale.customerName}</span></div>
               <div className="flex justify-between"><span>Phone:</span><span className="font-black">{lastSale.customerPhone}</span></div>
               <div className="flex justify-between gap-2"><span>Address:</span><span className="font-black text-right break-words">{lastSale.customerAddress}</span></div>

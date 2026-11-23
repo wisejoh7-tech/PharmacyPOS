@@ -523,7 +523,7 @@ const SupermarketPOS = () => {
               <div className="space-y-2 text-[12px] mb-4 border-b border-dashed border-slate-200 pb-4">
                  <div className="flex justify-between"><span>STX ID:</span><span className="font-black text-slate-900">{lastSale.id}</span></div>
                  <div className="flex justify-between"><span>Date:</span><span className="font-black text-slate-900 font-sans">{lastSale.date}</span></div>
-                 <div className="flex justify-between"><span>Cashier:</span><span className="font-black text-slate-900">{lastSale.cashier?.full_name || 'N/A'}</span></div>
+                 <div className="flex justify-between"><span>Attendant:</span><span className="font-black text-slate-900">{lastSale.cashier?.full_name || 'N/A'}</span></div>
                  <div className="flex justify-between"><span>Customer:</span><span className="font-black text-slate-900">{lastSale.customerName}</span></div>
                  <div className="flex justify-between"><span>Phone:</span><span className="font-black text-slate-900">{lastSale.customerPhone}</span></div><div className="flex justify-between gap-2"><span>Address:</span><span className="font-black text-slate-900 text-right break-words">{lastSale.customerAddress}</span></div>
               </div>
@@ -564,7 +564,7 @@ const SupermarketPOS = () => {
                 <div className="mb-4 border-b border-dashed pb-4 text-xs space-y-1">
                     <div className="flex justify-between"><span>ID:</span><span>{lastSale.id}</span></div>
                     <div className="flex justify-between"><span>Date:</span><span>{lastSale.date}</span></div>
-                    <div className="flex justify-between"><span>Cashier:</span><span>{lastSale.cashier?.full_name}</span></div>
+                    <div className="flex justify-between"><span>Attendant:</span><span>{lastSale.cashier?.full_name || 'N/A'}</span></div>
                     <div className="flex justify-between"><span>Customer:</span><span>{lastSale.customerName}</span></div>
                     <div className="flex justify-between"><span>Phone:</span><span>{lastSale.customerPhone}</span></div><div className="flex justify-between gap-2"><span>Address:</span><span className="text-right break-words">{lastSale.customerAddress}</span></div>
                 </div>
