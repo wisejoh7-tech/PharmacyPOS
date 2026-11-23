@@ -20,6 +20,9 @@ vi.mock('../services/staffService', () => ({
 vi.mock('../services/customerService', () => ({
   default: { getCustomers: vi.fn().mockResolvedValue({ data: [] }), createCustomer: vi.fn() },
 }));
+vi.mock('../services/settingsService', () => ({
+  default: { getSettings: vi.fn().mockResolvedValue({ data: [{ shop_name: 'Test Pharmacy', address: '1 Test Street' }] }) },
+}));
 vi.mock('../services/barcodeService', () => ({
   default: {},
 }));

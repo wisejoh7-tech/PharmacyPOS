@@ -11,6 +11,7 @@ import {
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import customerService from '../services/customerService';
+import settingsService from '../services/settingsService';
 import { AuthContext } from '../context/AuthContext';
 import CustomerSelector from '../components/CustomerSelector';
 
@@ -31,6 +32,7 @@ const SupermarketPOS = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categoriesList, setCategoriesList] = useState([]);
    const [lastScanned, setLastScanned] = useState(null);
+   const [receiptSettings, setReceiptSettings] = useState({ shop_name: 'New Light Medicine and Store', address: '' });
    const [autoPrint, setAutoPrint] = useState(false);
    const scanInputRef = useRef(null);
 
@@ -45,6 +47,7 @@ const SupermarketPOS = () => {
     fetchProducts(controller.signal);
     fetchStaff(controller.signal);
     fetchCategories();
+    fetchReceiptSettings(controller.signal);
     
     // Auto-focus the scan input on mount
     if (scanInputRef.current) {
@@ -87,6 +90,15 @@ const SupermarketPOS = () => {
     }
   };
 
+  const fetchReceiptSettings = async (signal) => {
+    try {
+      const response = await settingsService.getSettings({ signal });
+      const settings = response.data?.results?.[0] || response.data?.[0] || response.data;
+      if (settings) setReceiptSettings((current) => ({ ...current, ...settings }));
+    } catch (error) {
+      if (!axios.isCancel(error)) console.error('Failed to load receipt settings', error);
+    }
+  };
   const fetchStaff = async (signal) => {
     try {
       const response = await staffService.getStaff({ signal });
@@ -504,8 +516,9 @@ const SupermarketPOS = () => {
                 <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-xl shadow-lg">
                   <FaShoppingCart />
                 </div>
-                <h2 className="text-lg font-black text-slate-900 font-outfit uppercase">Retail Receipt</h2>
-                <p className="text-[12px] font-bold text-slate-400">VISIT US AGAIN SOON</p>
+                <h2 className="text-lg font-black text-slate-900 font-outfit uppercase">{receiptSettings.shop_name}</h2>
+                <p className="text-[12px] font-bold text-slate-500">{receiptSettings.address || 'Address not configured'}</p>
+                <p className="text-[12px] font-bold text-slate-400">Retail Receipt · VISIT US AGAIN SOON</p>
               </div>
               <div className="space-y-2 text-[12px] mb-4 border-b border-dashed border-slate-200 pb-4">
                  <div className="flex justify-between"><span>STX ID:</span><span className="font-black text-slate-900">{lastSale.id}</span></div>
@@ -544,8 +557,9 @@ const SupermarketPOS = () => {
           {lastSale && (
             <div className="p-8 w-full max-w-xs mx-auto text-black font-mono">
                 <div className="text-center mb-8">
-                    <h1 className="text-xl font-bold uppercase">Supermarket Receipt</h1>
-                    <p className="text-xs">Retail & Quality Goods</p>
+                    <h1 className="text-xl font-bold uppercase">{receiptSettings.shop_name}</h1>
+                    <p className="text-xs">{receiptSettings.address || 'Address not configured'}</p>
+                    <p className="text-xs">Supermarket Receipt · Retail & Quality Goods</p>
                 </div>
                 <div className="mb-4 border-b border-dashed pb-4 text-xs space-y-1">
                     <div className="flex justify-between"><span>ID:</span><span>{lastSale.id}</span></div>

@@ -12,6 +12,7 @@ import {
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import customerService from '../services/customerService';
+import settingsService from '../services/settingsService';
 import { AuthContext } from '../context/AuthContext';
 import CustomerSelector from '../components/CustomerSelector';
 
@@ -32,6 +33,7 @@ const PointOfSales = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categoriesList, setCategoriesList] = useState([]);
   const [lastScanned, setLastScanned] = useState(null);
+  const [receiptSettings, setReceiptSettings] = useState({ shop_name: 'New Light Medicine and Store', address: '' });
   const scanInputRef = useRef(null);
 
   useEffect(() => {
@@ -45,6 +47,7 @@ const PointOfSales = () => {
     fetchProducts(controller.signal);
     fetchStaff(controller.signal);
     fetchCategories();
+    fetchReceiptSettings(controller.signal);
 
     if (scanInputRef.current) {
       scanInputRef.current.focus();
@@ -80,6 +83,15 @@ const PointOfSales = () => {
     }
   };
 
+  const fetchReceiptSettings = async (signal) => {
+    try {
+      const response = await settingsService.getSettings({ signal });
+      const settings = response.data?.results?.[0] || response.data?.[0] || response.data;
+      if (settings) setReceiptSettings((current) => ({ ...current, ...settings }));
+    } catch (error) {
+      if (!axios.isCancel(error)) console.error('Failed to load receipt settings', error);
+    }
+  };
   const fetchStaff = async (signal) => {
     try {
       const response = await staffService.getStaff({ signal });
@@ -483,7 +495,9 @@ const PointOfSales = () => {
           <div className="bg-white w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="text-center mb-6">
               <FaReceipt className="text-3xl text-emerald-500 mx-auto mb-2" />
-              <h2 className="text-lg font-black text-slate-900 uppercase">Success</h2>
+              <h2 className="text-lg font-black text-slate-900 uppercase">{receiptSettings.shop_name}</h2>
+              <p className="text-xs text-slate-500">{receiptSettings.address || 'Address not configured'}</p>
+              <p className="text-xs text-slate-400">Pharmacy Receipt · Success</p>
             </div>
             <div className="space-y-2 text-[12px] mb-4 pb-4 border-b border-dashed">
               <div className="flex justify-between"><span>TX ID:</span><span className="font-black">{lastSale.id}</span></div>
@@ -518,7 +532,7 @@ const PointOfSales = () => {
       )}
       <div className="hidden print:block print:fixed print:inset-0 print:bg-white print:z-[200]">
         {lastSale && <div className="p-8 w-full max-w-xs mx-auto text-black font-mono">
-          <div className="text-center mb-5"><img src="/pharmacy-logo.jpeg" alt="Pharmacy" className="w-16 h-16 object-contain mx-auto" /><h1 className="text-lg font-bold uppercase">Pharmacy Receipt</h1></div>
+          <div className="text-center mb-5"><img src="/pharmacy-logo.jpeg" alt="Pharmacy" className="w-16 h-16 object-contain mx-auto" /><h1 className="text-lg font-bold uppercase">{receiptSettings.shop_name}</h1><p className="text-xs">{receiptSettings.address || 'Address not configured'}</p><p className="text-xs">Pharmacy Receipt</p></div>
           <div className="text-xs space-y-1 border-b border-dashed pb-3 mb-3"><div>Transaction: {lastSale.id}</div><div>Date: {lastSale.date}</div><div>Attendant: {lastSale.sellerName}</div><div>Customer: {lastSale.customerName}</div><div>Phone: {lastSale.customerPhone}</div><div>Address: {lastSale.customerAddress}</div></div>
           <div className="text-xs space-y-2 border-b border-dashed pb-3 mb-3">{lastSale.items.map((item) => <div key={item.id} className="flex justify-between"><span>{item.name} x{item.quantity}</span><span>₦{(item.unitPrice * item.quantity).toFixed(2)}</span></div>)}</div>
           <div className="flex justify-between font-bold"><span>TOTAL</span><span>₦{lastSale.total.toFixed(2)}</span></div>
