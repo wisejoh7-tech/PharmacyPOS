@@ -244,6 +244,7 @@ const PointOfSales = () => {
         sellerName: staffList.find(s => s.id == staffId)?.full_name || 'N/A',
         customerName: customer ? `${customer.first_name} ${customer.last_name}` : 'Walk-in Customer',
         customerPhone: customer?.phone_number || '—',
+        customerAddress: customer?.address || '—',
         items: cart,
         total: totalAmount,
         date: new Date().toLocaleString()
@@ -489,6 +490,7 @@ const PointOfSales = () => {
               <div className="flex justify-between"><span>Seller:</span><span className="font-black">{lastSale.sellerName}</span></div>
               <div className="flex justify-between"><span>Customer:</span><span className="font-black">{lastSale.customerName}</span></div>
               <div className="flex justify-between"><span>Phone:</span><span className="font-black">{lastSale.customerPhone}</span></div>
+              <div className="flex justify-between gap-2"><span>Address:</span><span className="font-black text-right break-words">{lastSale.customerAddress}</span></div>
               <div className="flex justify-between"><span>Total:</span><span className="font-black">₦{lastSale.total.toFixed(2)}</span></div>
             </div>
             <div className="mb-4 text-[12px] max-h-32 overflow-y-auto pr-1">
@@ -517,7 +519,7 @@ const PointOfSales = () => {
       <div className="hidden print:block print:fixed print:inset-0 print:bg-white print:z-[200]">
         {lastSale && <div className="p-8 w-full max-w-xs mx-auto text-black font-mono">
           <div className="text-center mb-5"><img src="/pharmacy-logo.jpeg" alt="Pharmacy" className="w-16 h-16 object-contain mx-auto" /><h1 className="text-lg font-bold uppercase">Pharmacy Receipt</h1></div>
-          <div className="text-xs space-y-1 border-b border-dashed pb-3 mb-3"><div>Transaction: {lastSale.id}</div><div>Date: {lastSale.date}</div><div>Attendant: {lastSale.sellerName}</div><div>Customer: {lastSale.customerName}</div><div>Phone: {lastSale.customerPhone}</div></div>
+          <div className="text-xs space-y-1 border-b border-dashed pb-3 mb-3"><div>Transaction: {lastSale.id}</div><div>Date: {lastSale.date}</div><div>Attendant: {lastSale.sellerName}</div><div>Customer: {lastSale.customerName}</div><div>Phone: {lastSale.customerPhone}</div><div>Address: {lastSale.customerAddress}</div></div>
           <div className="text-xs space-y-2 border-b border-dashed pb-3 mb-3">{lastSale.items.map((item) => <div key={item.id} className="flex justify-between"><span>{item.name} x{item.quantity}</span><span>₦{(item.unitPrice * item.quantity).toFixed(2)}</span></div>)}</div>
           <div className="flex justify-between font-bold"><span>TOTAL</span><span>₦{lastSale.total.toFixed(2)}</span></div>
         </div>}

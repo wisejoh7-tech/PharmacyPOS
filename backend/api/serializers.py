@@ -238,13 +238,14 @@ class SaleSerializer(serializers.ModelSerializer):
     staff_name = serializers.ReadOnlyField(source='staff.full_name')
     customer_name = serializers.SerializerMethodField()
     customer_phone = serializers.ReadOnlyField(source='customer.phone_number')
+    customer_address = serializers.ReadOnlyField(source='customer.address')
 
     def get_customer_name(self, obj):
         return f'{obj.customer.first_name} {obj.customer.last_name}'.strip() if obj.customer else 'Walk-in Customer'
 
     class Meta:
         model = Sale
-        fields = ['id', 'transaction_id', 'customer', 'customer_name', 'customer_phone', 'total_amount', 'payment_method', 'staff', 'staff_name', 'created_at', 'items']
+        fields = ['id', 'transaction_id', 'customer', 'customer_name', 'customer_phone', 'customer_address', 'total_amount', 'payment_method', 'staff', 'staff_name', 'created_at', 'items']
 
 class SaleReturnSerializer(serializers.ModelSerializer):
     class Meta:
@@ -304,13 +305,14 @@ class SupermarketSaleSerializer(serializers.ModelSerializer):
     staff_name = serializers.ReadOnlyField(source='staff.full_name')
     customer_name = serializers.SerializerMethodField()
     customer_phone = serializers.ReadOnlyField(source='customer.phone_number')
+    customer_address = serializers.ReadOnlyField(source='customer.address')
 
     def get_customer_name(self, obj):
         return f'{obj.customer.first_name} {obj.customer.last_name}'.strip() if obj.customer else 'Walk-in Customer'
 
     class Meta:
         model = SupermarketSale
-        fields = ['id', 'transaction_id', 'customer', 'customer_name', 'customer_phone', 'total_amount', 'payment_method', 'staff', 'staff_name', 'created_at', 'items']
+        fields = ['id', 'transaction_id', 'customer', 'customer_name', 'customer_phone', 'customer_address', 'total_amount', 'payment_method', 'staff', 'staff_name', 'created_at', 'items']
 
 class SystemSettingsSerializer(serializers.ModelSerializer):
     class Meta:
