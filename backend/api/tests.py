@@ -5,7 +5,7 @@ from django.test import TestCase, TransactionTestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import Staff
+from .models import Category, Drug, Product, Staff
 
 class HealthCheckAndApiTests(TestCase):
     def setUp(self):
@@ -222,6 +222,76 @@ class CategoryApiTestCase(TestCase):
         })
         self.assertEqual(res2.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('name', res2.data)
+
+
+class SalesInventoryAccessTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.staff = Staff.objects.create(
+            full_name='Inventory Sales Attendant',
+            email='inventory-attendant@pharmacy.com',
+            phone_number='08000000000',
+            role='Sales Attendance',
+            department='Sales',
+            employee_id='EMP-INVENTORY',
+        )
+        self.user = User.objects.create_user(
+            username='emp-inventory',
+            email='inventory-attendant@pharmacy.com',
+            password='password123',
+            is_staff=True,
+        )
+        self.client.force_authenticate(user=self.user)
+        self.pharmacy_category = Category.objects.create(name='Sales Pharmacy', type='Pharmacy')
+        self.supermarket_category = Category.objects.create(name='Sales Retail', type='Supermarket')
+
+    def test_sales_attendant_can_create_and_update_drug_without_setting_price(self):
+        create_response = self.client.post('/api/drugs/', {
+            'name': 'Sales Paracetamol',
+            'dosage': '500mg',
+            'form': 'Tablet',
+            'unit_price': '999.99',
+            'stock': 25,
+            'category_obj': self.pharmacy_category.id,
+        })
+
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        drug = Drug.objects.get(pk=create_response.data['id'])
+        self.assertEqual(drug.stock, 25)
+        self.assertEqual(drug.unit_price, 0)
+
+        update_response = self.client.patch(f'/api/drugs/{drug.id}/', {
+            'stock': 40,
+            'unit_price': '1234.56',
+        })
+
+        self.assertEqual(update_response.status_code, status.HTTP_200_OK)
+        drug.refresh_from_db()
+        self.assertEqual(drug.stock, 40)
+        self.assertEqual(drug.unit_price, 0)
+
+    def test_sales_attendant_can_create_and_update_product_without_setting_price(self):
+        create_response = self.client.post('/api/products/', {
+            'name': 'Sales Bottled Water',
+            'unit_price': '999.99',
+            'stock': 30,
+            'category_obj': self.supermarket_category.id,
+        })
+
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        product = Product.objects.get(pk=create_response.data['id'])
+        self.assertEqual(product.stock, 30)
+        self.assertEqual(product.unit_price, 0)
+
+        update_response = self.client.patch(f'/api/products/{product.id}/', {
+            'stock': 45,
+            'unit_price': '1234.56',
+        })
+
+        self.assertEqual(update_response.status_code, status.HTTP_200_OK)
+        product.refresh_from_db()
+        self.assertEqual(product.stock, 45)
+        self.assertEqual(product.unit_price, 0)
 
 
 class StaffApiTestCase(TestCase):

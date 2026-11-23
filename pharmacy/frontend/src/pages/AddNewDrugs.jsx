@@ -15,10 +15,10 @@ const AddNewDrugs = () => {
    const isEdit = !!id;
    const [loading, setLoading] = useState(false);
    const role = (user?.role || '').toLowerCase();
-   const isSalesStaff = role.includes('rep') || role.includes('attendant') || role.includes('cashier');
+   const isSalesStaff = role.includes('rep') || (role.includes('attendant') || role.includes('attendance')) || role.includes('cashier');
 
    useEffect(() => {
-      const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep') || role.includes('attendant') || role.includes('cashier');
+      const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep') || (role.includes('attendant') || role.includes('attendance')) || role.includes('cashier');
       if (user && !canManageInventory) {
          toast.error("Unauthorized access denied. Admin or Sales Rep permission required.");
          navigate('/inventory');

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Category, Drug, Staff, Customer, Prescription, PrescriptionItem, Sale, SaleItem, SaleReturn, Product, SupermarketSale, SupermarketSaleItem, SystemSettings, Expense
 
-SALES_STAFF_ROLE_MARKERS = ('sales rep', 'sales-rep', 'sales attendant', 'sales-attendant', 'cashier', 'attendant')
+SALES_STAFF_ROLE_MARKERS = ('sales rep', 'sales-rep', 'sales attendant', 'sales-attendant', 'cashier', 'attendant', 'attendance')
 
 def is_sales_staff(staff):
     role = str(getattr(staff, 'role', '') or '').strip().lower().replace('_', ' ')

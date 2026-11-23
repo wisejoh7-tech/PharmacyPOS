@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       items: [
         { name: 'Pharmacy Stock', icon: <FaBox />, path: '/inventory', roles: ['sales_attendant', 'sales_rep'] },
         { name: 'Supermarket Hub', icon: <FaShoppingCart />, path: '/supermarket', roles: ['sales_attendant', 'sales_rep'] },
-        { name: 'Categories', icon: <FaFolder />, path: '/categories', roles: ['sales_rep'] },
+        { name: 'Categories', icon: <FaFolder />, path: '/categories', roles: ['sales_attendant', 'sales_rep'] },
         { name: 'Prescriptions', icon: <FaBriefcaseMedical />, path: '/prescriptions/review', roles: ['pharmacist', 'nurse'] },
       ]
     },

@@ -29,8 +29,8 @@ const AddNewProduct = () => {
     const [editingCategory, setEditingCategory] = useState(null);
 
     const role = (user?.role || '').toLowerCase();
-    const isSalesStaff = role.includes('rep') || role.includes('attendant') || role.includes('cashier');
-    const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep') || role.includes('attendant') || role.includes('cashier');
+    const isSalesStaff = role.includes('rep') || (role.includes('attendant') || role.includes('attendance')) || role.includes('cashier');
+    const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep') || (role.includes('attendant') || role.includes('attendance')) || role.includes('cashier');
 
     useEffect(() => {
         if (user && !canManageInventory) {

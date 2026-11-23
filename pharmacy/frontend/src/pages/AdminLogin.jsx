@@ -38,7 +38,7 @@ const AdminLogin = () => {
     setIsLoading(false);
     if (success) {
       const role = (localStorage.getItem('user_role') || '').toLowerCase();
-      const isSalesStaff = role.includes('rep') || role.includes('attendant') || role.includes('cashier');
+      const isSalesStaff = role.includes('rep') || (role.includes('attendant') || role.includes('attendance')) || role.includes('cashier');
       navigate(isSalesStaff ? '/pos' : '/');
     }
   };

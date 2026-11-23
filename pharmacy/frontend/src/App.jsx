@@ -103,7 +103,7 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/categories" element={
-            <PrivateRoute allowedRoles={['sales_rep']}>
+            <PrivateRoute allowedRoles={['sales_attendant', 'sales_rep']}>
               <Layout>
                 <CategoryManagement />
               </Layout>

@@ -26,7 +26,7 @@ def staff_for_request(request):
 
 def is_sales_staff(staff):
     role = str(getattr(staff, 'role', '') or '').lower().replace('_', ' ')
-    return any(marker in role for marker in ('sales rep', 'sales-rep', 'sales attendant', 'sales-attendant', 'cashier', 'attendant'))
+    return any(marker in role for marker in ('sales rep', 'sales-rep', 'sales attendant', 'sales-attendant', 'cashier', 'attendant', 'attendance'))
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
