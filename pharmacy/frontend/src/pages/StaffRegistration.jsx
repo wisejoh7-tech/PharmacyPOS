@@ -4,8 +4,7 @@ import {
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
-import { addToSyncQueue } from '../services/db';
+import staffService from '../services/staffService';
 
 const StaffRegistration = () => {
   const navigate = useNavigate();
@@ -35,14 +34,16 @@ const StaffRegistration = () => {
       const fetchStaffMember = async () => {
         try {
           setLoading(true);
-          const response = await api.get(`staff/${id}/`);
+          const response = await staffService.getStaffMember(id);
           const data = response.data;
           setFormData({
-            full_name: data.full_name || '',
+            full_name: data.full_name || data.name || '',
+            username: data.login_username || data.username || '',
             email: data.email || '',
             phone_number: data.phone_number || '',
             role: data.role || '',
             department: data.department || '',
+            password: '',
             employee_id: data.employee_id || ''
           });
           if (data.photo) {
@@ -110,59 +111,48 @@ const StaffRegistration = () => {
   };
 
   const handleSave = async () => {
-    if(!formData.full_name || !formData.role) {
+    if (!formData.full_name?.trim() || !formData.role) {
       return toast.error("Required: Name & Role");
     }
 
     const loginName = (formData.username || formData.employee_id || '').trim();
-    const loginPass = formData.password || 'admin123';
     const normalizedUser = loginName.toLowerCase();
+    const payload = { ...formData, photo: capturedImage };
+    if (isEditMode && !payload.password) delete payload.password;
 
-    // Cache user credentials locally for immediate offline login capability
     const cacheCandidateCredentials = () => {
+      if (!payload.password) return;
       try {
         const cachedUsers = JSON.parse(localStorage.getItem('offline_users_cache') || '{}');
         cachedUsers[normalizedUser] = {
           username: normalizedUser,
-          password: loginPass,
+          password: payload.password,
           role: formData.role || 'Staff',
           department: formData.department || 'General',
           fullName: formData.full_name,
           isAdmin: Boolean(formData.role && formData.role.toLowerCase().includes('admin'))
         };
         localStorage.setItem('offline_users_cache', JSON.stringify(cachedUsers));
-      } catch (e) {
-        console.warn("Failed to cache offline user credentials:", e);
+      } catch (error) {
+        console.warn("Failed to cache offline user credentials:", error);
       }
     };
 
     try {
       setIsSaving(true);
-      const payload = { ...formData, photo: capturedImage };
-
-      if (isEditMode) {
-        await api.put(`staff/${id}/`, payload);
-        toast.success(`Staff updated. Login: ${loginName}`);
-      } else {
-        await api.post('staff/', payload);
-        toast.success(`Staff registered! Login Username: ${loginName} | Password: ${loginPass}`, { duration: 6000 });
-      }
-
+      const response = isEditMode
+        ? await staffService.updateStaff(id, payload)
+        : await staffService.createStaff(payload);
       cacheCandidateCredentials();
+      toast.success(response.offline
+        ? (isEditMode ? 'Staff changes saved offline and queued for sync.' : 'Staff registered offline and queued for sync.')
+        : (isEditMode ? 'Staff updated successfully.' : 'Staff registered successfully.'));
       navigate('/staff');
-    } catch (err) {
-      console.warn("Online registration failed, attempting offline save...", err);
-
-      // Offline fallback: cache candidate locally & queue for sync
-      try {
-        cacheCandidateCredentials();
-        await addToSyncQueue(isEditMode ? 'PUT' : 'POST', 'staff', { ...formData, photo: capturedImage });
-        toast.success(`Offline Registration Saved! Username: ${loginName} | Password: ${loginPass}`, { duration: 6000 });
-        navigate('/staff');
-      } catch (offlineErr) {
-        console.error("Offline registration error:", offlineErr);
-        toast.error("Registration failed offline. Please try again.");
-      }
+    } catch (error) {
+      console.error("Staff save failed:", error);
+      const data = error.response?.data;
+      const serverMessage = typeof data === 'string' ? data : (data?.detail || Object.values(data || {}).flat().join(' '));
+      toast.error(serverMessage || (navigator.onLine ? 'Staff save failed. Please correct the details and try again.' : 'Staff save failed offline. Please try again.'));
     } finally {
       setIsSaving(false);
     }
@@ -313,7 +303,7 @@ const StaffRegistration = () => {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Account Password</label>
-                      <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder={isEditMode ? "Leave blank to keep current password" : "Set account password (default: admin123)"} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-black text-slate-900 outline-none focus:border-blue-800" />
+                      <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder={isEditMode ? "Leave blank to keep current password" : "Set account password"} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[11px] font-black text-slate-900 outline-none focus:border-blue-800" />
                     </div>
 
                     <div className="md:col-span-2 bg-slate-50 rounded-xl p-4 border border-slate-200">

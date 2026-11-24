@@ -12,8 +12,8 @@ import {
 
 const InventoryManagement = () => {
   const { user } = useContext(AuthContext);
-  const role = (user?.role || '').toLowerCase();
-  const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
+  const canManageInventory = Boolean(user);
+  const canEditInventory = Boolean(user);
   const [inventoryData, setInventoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -245,9 +245,9 @@ const InventoryManagement = () => {
               >
                 <FaEdit /> Edit Categories
               </button>
-              <Link to="/inventory/new" className="btn-pharmacy px-3 py-2 text-xs whitespace-nowrap shadow-none border flex-1 sm:flex-initial justify-center">
+              {canEditInventory && <Link to="/inventory/new" className="btn-pharmacy px-3 py-2 text-xs whitespace-nowrap shadow-none border flex-1 sm:flex-initial justify-center">
                 <FaPlus /> New Entry
-              </Link>
+              </Link>}
             </div>
           )}
         </div>
@@ -418,7 +418,7 @@ const InventoryManagement = () => {
                         </span>
                       </td>
                       <td className="px-5 py-3">
-                        {canManageInventory && (
+                        {canEditInventory && (
                           <div className="flex justify-center items-center gap-1">
                             <Link to={`/inventory/edit/${item.id}`} className="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all" title="Edit Medication">
                               <FaEdit className="text-sm" />

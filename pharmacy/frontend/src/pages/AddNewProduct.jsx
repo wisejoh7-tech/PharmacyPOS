@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
 import { AuthContext } from '../context/AuthContext';
@@ -11,6 +11,8 @@ import {
 
 const AddNewProduct = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
+    const isEdit = Boolean(id);
     const { user } = useContext(AuthContext);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -29,15 +31,19 @@ const AddNewProduct = () => {
     const [editingCategory, setEditingCategory] = useState(null);
 
     const role = (user?.role || '').toLowerCase();
-    const isSalesStaff = role.includes('rep') || (role.includes('attendant') || role.includes('attendance')) || role.includes('cashier');
-    const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep') || (role.includes('attendant') || role.includes('attendance')) || role.includes('cashier');
+    const isAdmin = user?.isAdmin || role.includes('admin') || role.includes('manager');
+    const canManageInventory = isAdmin;
 
     useEffect(() => {
-        if (user && !canManageInventory) {
-            toast.error("Unauthorized access denied. Admin or Sales Rep permission required.");
-            navigate('/supermarket/inventory');
+        if (isEdit) {
+            productService.getProduct(id).then(({ data }) => {
+                if (data) setFormData(prev => ({ ...prev, ...data, unit_price: data.unit_price ?? '' }));
+            }).catch(error => {
+                console.error('Failed to load product', error);
+                toast.error('Failed to load product details.');
+            });
         }
-    }, [user, canManageInventory, navigate]);
+    }, [id, isEdit]);
 
     useEffect(() => {
         fetchCategories();
@@ -108,7 +114,7 @@ const AddNewProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name?.trim() || (!formData.category_obj && !formData.category?.trim()) || (!isSalesStaff && (formData.unit_price === '' || formData.unit_price === null || formData.unit_price === undefined))) {
+        if (!formData.name?.trim() || (!formData.category_obj && !formData.category?.trim()) || (isAdmin && (formData.unit_price === '' || formData.unit_price === null || formData.unit_price === undefined))) {
             return toast.error("Required fields missing: Name and Category");
         }
         try {
@@ -123,16 +129,19 @@ const AddNewProduct = () => {
                 return null;
             };
 
+            const fieldsWithoutPrice = { ...formData };
+            delete fieldsWithoutPrice.unit_price;
             const payload = {
-                ...formData,
+                ...(isAdmin ? formData : fieldsWithoutPrice),
                 barcode: formData.barcode?.trim() || null,
                 stock_date: parseDate(formData.stock_date),
                 expiry_date: parseDate(formData.expiry_date),
-                unit_price: isSalesStaff ? undefined : formData.unit_price
+                ...(isAdmin ? { unit_price: formData.unit_price } : {})
             };
 
-            await productService.addProduct(payload);
-            toast.success("Product added successfully!");
+            if (isEdit) await productService.updateProduct(id, payload);
+            else await productService.addProduct(payload);
+            toast.success(isEdit ? 'Product updated successfully!' : 'Product added successfully!');
             navigate('/supermarket/inventory');
         } catch (error) {
             console.error("Failed to add product", error);
@@ -163,7 +172,7 @@ const AddNewProduct = () => {
                             <FaCubes className="w-2.5 h-2.5" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Merchandise Entry</span>
                         </div>
-                        <h1 className="text-sm font-black text-slate-900 tracking-tight uppercase font-outfit">New Product</h1>
+                        <h1 className="text-sm font-black text-slate-900 tracking-tight uppercase font-outfit">{isEdit ? 'Edit Product' : 'New Product'}</h1>
                     </div>
                 </div>
 
@@ -191,7 +200,7 @@ const AddNewProduct = () => {
                         className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-tight flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 disabled:opacity-50"
                     >
                         <FaSave className="w-3 h-3" />
-                        {loading ? 'Processing...' : 'Provision Product'}
+                        {loading ? 'Processing...' : (isEdit ? 'Save Product' : 'Provision Product')}
                     </button>
                 </div>
             </header>
@@ -286,7 +295,7 @@ const AddNewProduct = () => {
 
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                                {!isSalesStaff && <div className="space-y-2">
+                                {isAdmin && <div className="space-y-2">
                                     <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Unit Price (₦) <span className="text-red-500">*</span></label>
                                     <input 
                                         required

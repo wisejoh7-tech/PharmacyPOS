@@ -48,15 +48,19 @@ const drugService = {
   },
 
   updateDrug: async (id, drugData) => {
+    const hasPrice = Object.prototype.hasOwnProperty.call(drugData, 'unit_price');
     if (navigator.onLine) {
-      const response = await api.put(`drugs/${id}/`, drugData);
-      await db.drugs.put({ ...drugData, id });
+      const response = hasPrice
+        ? await api.put(`drugs/${id}/`, drugData)
+        : await api.patch(`drugs/${id}/`, drugData);
+      try { await db.drugs.put({ ...(await db.drugs.get(Number(id))), ...response.data, id: response.data?.id ?? id }); }
+      catch (error) { console.warn('Drug updated remotely but cache could not be updated:', error); }
       return response;
-    } else {
-      await db.drugs.put({ ...drugData, id });
-      await addToSyncQueue('UPDATE', 'drugs', { ...drugData, id });
-      return { data: { ...drugData, id }, status: 200 };
     }
+    const existing = await db.drugs.get(Number(id));
+    await db.drugs.put({ ...existing, ...drugData, id: Number(id) });
+    await addToSyncQueue(hasPrice ? 'UPDATE' : 'PATCH', 'drugs', { ...drugData, id: Number(id) });
+    return { data: { ...existing, ...drugData, id: Number(id) }, status: 200 };
   },
 
   deleteDrug: async (id) => {

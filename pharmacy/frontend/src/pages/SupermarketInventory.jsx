@@ -12,8 +12,8 @@ import {
 
 const SupermarketInventory = () => {
   const { user } = useContext(AuthContext);
-  const role = (user?.role || '').toLowerCase();
-  const canManageInventory = user?.isAdmin || role.includes('admin') || role.includes('manager') || role.includes('rep');
+  const canManageInventory = Boolean(user);
+  const canEditInventory = Boolean(user);
   const [inventoryData, setInventoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -216,9 +216,9 @@ const SupermarketInventory = () => {
               >
                 <FaEdit /> Edit Categories
               </button>
-              <Link to="/supermarket/inventory/new" className="px-4 py-2 w-full sm:w-auto text-xs whitespace-nowrap bg-emerald-600 text-white rounded-xl font-black uppercase tracking-tight flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
+              {canEditInventory && <Link to="/supermarket/inventory/new" className="px-4 py-2 w-full sm:w-auto text-xs whitespace-nowrap bg-emerald-600 text-white rounded-xl font-black uppercase tracking-tight flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
                 <FaPlus /> New Product
-              </Link>
+              </Link>}
             </div>
           )}
         </div>
@@ -354,7 +354,7 @@ const SupermarketInventory = () => {
                         </span>
                       </td>
                       <td className="px-5 py-3">
-                        {canManageInventory && (
+                        {canEditInventory && (
                           <div className="flex justify-center items-center gap-1">
                             <Link to={`/supermarket/inventory/edit/${item.id}`} className="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all" title="Edit Product">
                               <FaEdit className="text-sm" />

@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Category, Drug, Staff, Customer, Prescription, PrescriptionItem, Sale, SaleItem, SaleReturn, Product, SupermarketSale, SupermarketSaleItem, SystemSettings, Expense
@@ -17,7 +18,9 @@ def request_staff_record(serializer):
     user = getattr(serializer.context.get('request'), 'user', None)
     if not user or not getattr(user, 'is_authenticated', False):
         return None
-    staff = Staff.objects.filter(employee_id__iexact=user.username).first()
+    staff = Staff.objects.filter(user=user).first()
+    if not staff:
+        staff = Staff.objects.filter(employee_id__iexact=user.username).first()
     if not staff and user.email:
         staff = Staff.objects.filter(email__iexact=user.email).first()
     return staff
@@ -47,7 +50,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         staff = None
         try:
-            staff = Staff.objects.filter(employee_id__iexact=user.username).first()
+            staff = Staff.objects.filter(user=user).first()
+            if not staff:
+                staff = Staff.objects.filter(employee_id__iexact=user.username).first()
             if not staff and user.email:
                 staff = Staff.objects.filter(email__iexact=user.email).first()
 
@@ -98,7 +103,13 @@ class CategorySerializer(serializers.ModelSerializer):
 
         return attrs
 
-class DrugSerializer(serializers.ModelSerializer):
+class InventoryPricePermissionMixin:
+    def _request_is_admin(self):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        return bool(user and user.is_authenticated and (user.is_superuser or is_admin_role(request_staff_record(self))))
+
+class DrugSerializer(InventoryPricePermissionMixin, serializers.ModelSerializer):
     category_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -106,7 +117,7 @@ class DrugSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, attrs):
-        if is_sales_staff(request_staff_record(self)):
+        if not self._request_is_admin():
             attrs.pop('unit_price', None)
         return attrs
 
@@ -146,65 +157,75 @@ class StaffSerializer(serializers.ModelSerializer):
     department = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
     username = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+    login_username = serializers.ReadOnlyField(source='user.username')
 
     class Meta:
         model = Staff
         fields = '__all__'
+        read_only_fields = ('user',)
 
     def validate_email(self, value):
         if value is None or (isinstance(value, str) and value.strip() == ""):
             return None
         return value.strip()
 
+    def _admin_for_request(self):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        return bool(user and user.is_authenticated and (user.is_superuser or is_admin_role(request_staff_record(self))))
+
+    def _username(self, supplied, staff):
+        return (supplied or staff.employee_id or '').strip().lower()
+
+    @transaction.atomic
     def create(self, validated_data):
         password = validated_data.pop('password', None) or 'admin123'
         custom_username = validated_data.pop('username', None)
         staff = Staff.objects.create(**validated_data)
-        
-        login_username = (custom_username or staff.employee_id or '').strip().lower()
-        if login_username:
-            is_admin = bool(staff.role and 'admin' in staff.role.lower())
-            user = User.objects.filter(username=login_username).first()
-            if not user:
-                user = User.objects.create_user(
-                    username=login_username,
-                    email=staff.email or '',
-                    password=password,
-                    is_staff=True,
-                    is_superuser=is_admin
-                )
-            else:
-                user.set_password(password)
-                user.is_superuser = is_admin
-                user.save()
+        login_username = self._username(custom_username, staff)
+        if not login_username:
+            raise serializers.ValidationError({'username': 'A login username or employee ID is required.'})
+        if User.objects.filter(username__iexact=login_username).exists():
+            raise serializers.ValidationError({'username': 'This username is already assigned to another account.'})
+        user = User.objects.create_user(username=login_username, email=staff.email or '', password=password, is_staff=True, is_superuser=is_admin_role(staff))
+        staff.user = user
+        staff.save(update_fields=['user'])
         return staff
 
+    @transaction.atomic
     def update(self, instance, validated_data):
+        old_employee_id = instance.employee_id
         password = validated_data.pop('password', None)
         custom_username = validated_data.pop('username', None)
-        old_employee_id = instance.employee_id
-        old_email = instance.email
-
         staff = super().update(instance, validated_data)
-
-        new_username = (custom_username or staff.employee_id or '').strip().lower()
-        old_username = old_employee_id.lower() if old_employee_id else new_username
-        is_admin = bool(staff.role and 'admin' in staff.role.lower())
-
-        user = User.objects.filter(username=old_username).first()
-        if not user and old_email:
-            user = User.objects.filter(email__iexact=old_email).first()
-
-        if user:
-            if new_username and user.username != new_username:
-                user.username = new_username
-            if user.email != (staff.email or ''):
-                user.email = staff.email or ''
+        user = staff.user
+        requested_username = (custom_username or '').strip()
+        if user is None:
+            login_username = self._username(requested_username, staff)
+            # Never claim an account by matching an arbitrary email/employee id.
+            if User.objects.filter(username__iexact=login_username).exists():
+                raise serializers.ValidationError({'username': 'This username is already assigned to another account.'})
+            user = User.objects.create_user(username=login_username, email=staff.email or '', password=password or 'admin123', is_staff=True, is_superuser=is_admin_role(staff))
+            staff.user = user
+            staff.save(update_fields=['user'])
+        else:
+            old_default_username = (old_employee_id or '').strip().lower()
+            if requested_username:
+                login_username = self._username(requested_username, staff)
+            elif user.username.lower() == old_default_username and staff.employee_id:
+                login_username = self._username(staff.employee_id, staff)
+            else:
+                login_username = user.username
+            if login_username and login_username.lower() != user.username.lower():
+                if User.objects.exclude(pk=user.pk).filter(username__iexact=login_username).exists():
+                    raise serializers.ValidationError({'username': 'This username is already assigned to another account.'})
+                user.username = login_username
+            user.email = staff.email or ''
             if password:
                 user.set_password(password)
-            user.is_superuser = is_admin
+            user.is_staff = True
+            user.is_superuser = is_admin_role(staff)
             user.save()
-
         return staff
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -252,7 +273,7 @@ class SaleReturnSerializer(serializers.ModelSerializer):
         model = SaleReturn
         fields = '__all__'
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(InventoryPricePermissionMixin, serializers.ModelSerializer):
     category_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -260,7 +281,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, attrs):
-        if is_sales_staff(request_staff_record(self)):
+        if not self._request_is_admin():
             attrs.pop('unit_price', None)
         return attrs
 

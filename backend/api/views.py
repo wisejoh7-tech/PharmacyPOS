@@ -19,7 +19,9 @@ from .serializers import (
 def staff_for_request(request):
     if not getattr(request.user, 'is_authenticated', False):
         return None
-    staff = Staff.objects.filter(employee_id__iexact=request.user.username).first()
+    staff = Staff.objects.filter(user=request.user).first()
+    if not staff:
+        staff = Staff.objects.filter(employee_id__iexact=request.user.username).first()
     if not staff and request.user.email:
         staff = Staff.objects.filter(email__iexact=request.user.email).first()
     return staff
@@ -45,18 +47,9 @@ class StaffViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        username = instance.employee_id.lower() if instance.employee_id else None
-        email = instance.email
-
-        user = None
-        if username:
-            user = User.objects.filter(username=username).first()
-        if not user and email:
-            user = User.objects.filter(email__iexact=email).first()
-
+        user = instance.user
         if user and not user.is_superuser:
             user.delete()
-
         return super().destroy(request, *args, **kwargs)
 
 class CustomerViewSet(viewsets.ModelViewSet):

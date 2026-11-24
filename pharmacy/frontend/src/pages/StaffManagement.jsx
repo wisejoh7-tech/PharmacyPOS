@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import api from '../services/api';
+import staffService from '../services/staffService';
 import {
   FaPlus, FaSearch, FaEye, FaPen, FaTrash, FaCalendarAlt, FaCheckCircle, FaUserShield, FaTimes
 } from 'react-icons/fa';
@@ -21,8 +21,8 @@ const StaffManagement = () => {
 
   const fetchStaff = async (signal) => {
     try {
-      const response = await api.get('staff/', { signal });
-      setStaffData(response.data.results || response.data || []);
+      const response = await staffService.getStaff({ signal });
+      setStaffData(Array.isArray(response.data) ? response.data : (response.data?.results || []));
     } catch (error) {
        if (error.name !== 'CanceledError' && error.name !== 'AbortError') {
          console.error("Error fetching staff:", error);
@@ -45,7 +45,7 @@ const StaffManagement = () => {
     const staffName = staffMember.full_name || staffMember.name || 'this staff member';
     if (window.confirm(`Are you sure you want to delete ${staffName}? This action cannot be undone.`)) {
       try {
-        await api.delete(`staff/${staffMember.id}/`);
+        await staffService.deleteStaff(staffMember.id);
         toast.success(`Staff member "${staffName}" deleted successfully.`);
         setStaffData(prev => prev.filter(s => s.id !== staffMember.id));
       } catch (error) {

@@ -3,74 +3,72 @@ import { db } from './db';
 
 const syncService = {
   getPendingSyncCount: async () => {
-    try {
-      return await db.syncQueue.count();
-    } catch {
-      return 0;
-    }
+    try { return await db.syncQueue.count(); } catch { return 0; }
   },
 
   sync: async () => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      console.log('App is offline, skipping sync.');
       return { success: false, reason: 'offline' };
     }
-
     const queue = await db.syncQueue.toArray();
-    if (queue.length === 0) {
-      console.log('Sync queue is empty.');
-      return { success: true, syncedCount: 0 };
-    }
-
-    console.log(`Starting sync for ${queue.length} items...`);
+    if (!queue.length) return { success: true, syncedCount: 0, errors: [] };
     let syncedCount = 0;
-    
+    const errors = [];
+
     for (const item of queue) {
       try {
-        let response;
         const endpoint = item.table.endsWith('/') ? item.table : `${item.table}/`;
-
+        let response;
+        const itemId = item.data?.id || item.id;
         if (item.action === 'CREATE') {
-          response = await api.post(endpoint, item.data);
-        } else if (item.action === 'UPDATE') {
-          const itemId = item.data?.id || item.id;
-          response = await api.put(`${endpoint}${itemId}/`, item.data);
-        } else if (item.action === 'PATCH') {
-          const itemId = item.data?.id || item.id;
-          response = await api.patch(`${endpoint}${itemId}/`, item.data);
-        } else if (item.action === 'DELETE') {
-          const itemId = item.data?.id || item.id;
-          response = await api.delete(`${endpoint}${itemId}/`);
+          const createData = { ...item.data };
+          if (item.table.replace(/\/$/, '') === 'staff') delete createData.id;
+          response = await api.post(endpoint, createData);
         }
-        
-        if (response && (response.status >= 200 && response.status < 300)) {
+        else if (item.action === 'UPDATE') response = await api.put(`${endpoint}${itemId}/`, item.data);
+        else if (item.action === 'PATCH') response = await api.patch(`${endpoint}${itemId}/`, item.data);
+        else if (item.action === 'DELETE') response = await api.delete(`${endpoint}${itemId}/`);
+
+        if (response && response.status >= 200 && response.status < 300) {
+          if (item.table.replace(/\/$/, '') === 'staff' && item.action === 'CREATE') {
+            const serverId = response.data?.id;
+            const localId = item.data?.id;
+            if (serverId !== undefined && localId !== undefined && serverId !== localId) {
+              await db.transaction('rw', db.staff, db.syncQueue, async () => {
+                const localRow = await db.staff.get(localId);
+                if (localRow) {
+                  await db.staff.delete(localId);
+                  await db.staff.put({ ...localRow, ...response.data, id: serverId });
+                }
+                const queuedItems = await db.syncQueue.toArray();
+                for (const queued of queuedItems) {
+                  if (queued.id === item.id || queued.table.replace(/\/$/, '') !== 'staff') continue;
+                  if (queued.data?.id === localId) {
+                    await db.syncQueue.update(queued.id, {
+                      data: { ...queued.data, id: serverId },
+                    });
+                  }
+                }
+              });
+            }
+          }
           await db.syncQueue.delete(item.id);
           syncedCount++;
-          console.log(`Successfully synced ${item.table} item.`);
         }
       } catch (error) {
         console.error(`Sync failed for ${item.table} item:`, error.message);
-        
-        // If it's a 4xx error (except 429), skip it to avoid blocking the queue
-        if (error.response && error.response.status >= 400 && error.response.status < 500 && error.response.status !== 429) {
-           console.warn("Skipping item due to client error (4xx).");
-           await db.syncQueue.delete(item.id);
-        } else {
-          // For server errors or network issues, stop and retry later
-          break; 
-        }
+        errors.push({ id: item.id, table: item.table, status: error.response?.status, message: error.response?.data || error.message });
+        // Never silently discard validation/client errors; retain them for correction/retry.
+        if (error.response?.status >= 400 && error.response.status < 500 && error.response.status !== 429) continue;
+        break;
       }
     }
-    console.log(`Sync process completed/paused. Synced: ${syncedCount}`);
-    return { success: true, syncedCount };
-  }
+    return { success: errors.length === 0, syncedCount, errors };
+  },
 };
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => {
-    console.log('Network status online: initiating background sync...');
-    syncService.sync();
-  });
+  window.addEventListener('online', () => syncService.sync());
 }
 
 export default syncService;

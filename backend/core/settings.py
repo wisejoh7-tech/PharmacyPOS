@@ -102,14 +102,30 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database Configuration (Supports PostgreSQL & SQL databases via DATABASE_URL or individual env vars)
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+_offline_mode = os.environ.get('OFFLINE_MODE', 'false').strip().lower() in ('true', '1', 't', 'yes')
 _db_url = os.environ.get('DATABASE_URL')
-if not _db_url and os.environ.get('DB_NAME'):
+if _offline_mode:
+    # Explicit offline mode always uses local SQLite, even if online DB vars exist.
+    _db_url = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+elif not _db_url and os.environ.get('DB_NAME'):
     _db_user = os.environ.get('DB_USER', 'postgres')
     _db_password = os.environ.get('DB_PASSWORD', '')
     _db_host = os.environ.get('DB_HOST', 'localhost')
     _db_port = os.environ.get('DB_PORT', '5432')
-    _db_name = os.environ.get('DB_NAME', 'pharmacy')
-    _db_url = f"postgres://{_db_user}:{_db_password}@{_db_host}:{_db_port}/{_db_name}"
+    _db_name = os.environ.get('DB_NAME')
+    _db_url = f"postgresql://{_db_user}:{_db_password}@{_db_host}:{_db_port}/{_db_name}"
+
+if not _db_url and not DEBUG:
+    raise RuntimeError('Online mode requires DATABASE_URL or DB_NAME. Set OFFLINE_MODE=true for local SQLite.')
+if _db_url:
+    _scheme = urlparse(_db_url).scheme.lower()
+    if _scheme.startswith('mysql'):
+        raise RuntimeError('MySQL DATABASE_URL is not supported; configure PostgreSQL or OFFLINE_MODE=true.')
+    if not (_scheme.startswith('postgres') or _scheme == 'sqlite'):
+        raise RuntimeError(f'Unsupported DATABASE_URL scheme: {_scheme or "missing"}. Use PostgreSQL or SQLite.')
+    if _scheme == 'sqlite' and not _offline_mode and not DEBUG:
+        raise RuntimeError('SQLite is only supported with OFFLINE_MODE=true or DEBUG=true. Configure PostgreSQL for online deployments.')
+
 
 # Auto-resolve Render internal database hostnames when running outside Render network
 if _db_url:
@@ -131,7 +147,7 @@ if _db_url:
         pass
 
 # Enable SSL mode by default for PostgreSQL database URLs (e.g., Render Postgres)
-_is_postgres = bool(_db_url and ('postgres' in _db_url or 'postgresql' in _db_url))
+_is_postgres = bool(_db_url and urlparse(_db_url).scheme.lower().startswith('postgres'))
 _default_ssl = 'True' if _is_postgres else 'False'
 _ssl_require_env = os.environ.get('DB_SSL_REQUIRE', _default_ssl).lower() in ('true', '1', 't')
 

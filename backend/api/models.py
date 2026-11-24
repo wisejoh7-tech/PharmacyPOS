@@ -33,6 +33,7 @@ class Staff(models.Model):
     employee_id = models.CharField(max_length=50, unique=True)
     photo = models.TextField(blank=True, null=True) # Storing data URL for simplicity
     status = models.CharField(max_length=50, default='Active')
+    user = models.OneToOneField('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='pharmacy_staff')
 
     def __str__(self):
         return self.full_name
