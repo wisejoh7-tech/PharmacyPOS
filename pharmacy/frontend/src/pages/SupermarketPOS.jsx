@@ -221,7 +221,6 @@ const SupermarketPOS = () => {
            cashier: staffList.find(s => s.id == staffId),
            customerName: customer ? `${customer.first_name} ${customer.last_name}` : 'Walk-in Customer',
            customerPhone: customer?.phone_number || '—',
-           customerAddress: customer?.address || '—',
            items: cart,
            total: totalAmount,
            date: new Date().toLocaleString()
@@ -524,7 +523,7 @@ const SupermarketPOS = () => {
                  <div className="flex justify-between"><span>Date:</span><span className="font-black text-slate-900 font-sans">{lastSale.date}</span></div>
                  <div className="flex justify-between"><span>Attendant:</span><span className="font-black text-slate-900">{lastSale.cashier?.full_name || 'N/A'}</span></div>
                  <div className="flex justify-between"><span>Customer:</span><span className="font-black text-slate-900">{lastSale.customerName}</span></div>
-                 <div className="flex justify-between"><span>Phone:</span><span className="font-black text-slate-900">{lastSale.customerPhone}</span></div><div className="flex justify-between gap-2"><span>Address:</span><span className="font-black text-slate-900 text-right break-words">{lastSale.customerAddress}</span></div>
+                 <div className="flex justify-between"><span>Phone:</span><span className="font-black text-slate-900">{lastSale.customerPhone}</span></div>
               </div>
               <div className="space-y-2 border-b border-dashed border-slate-200 mb-4 pb-4">
                  {lastSale.items.map(item => (
@@ -566,7 +565,7 @@ const SupermarketPOS = () => {
                     <div className="flex justify-between"><span>Date:</span><span>{lastSale.date}</span></div>
                     <div className="flex justify-between"><span>Attendant:</span><span>{lastSale.cashier?.full_name || 'N/A'}</span></div>
                     <div className="flex justify-between"><span>Customer:</span><span>{lastSale.customerName}</span></div>
-                    <div className="flex justify-between"><span>Phone:</span><span>{lastSale.customerPhone}</span></div><div className="flex justify-between gap-2"><span>Address:</span><span className="text-right break-words">{lastSale.customerAddress}</span></div>
+                    <div className="flex justify-between"><span>Phone:</span><span>{lastSale.customerPhone}</span></div>
                 </div>
                 <div className="mb-4 border-b border-dashed pb-4 text-xs space-y-2">
                     {lastSale.items.map(item => (

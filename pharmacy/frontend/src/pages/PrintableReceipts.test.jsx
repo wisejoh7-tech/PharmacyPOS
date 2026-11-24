@@ -65,7 +65,7 @@ describe('printable receipt fields', () => {
     localStorage.clear();
   });
 
-  it('renders all new fields on the pharmacy printable receipt', async () => {
+  it('prints the business address but not the customer address on pharmacy receipts', async () => {
     localStorage.setItem('pharmacy_cart', JSON.stringify([
       { id: 11, name: 'Paracetamol', unitPrice: 100, quantity: 2, stock: 10, barcode: 'PH-11' },
     ]));
@@ -79,13 +79,13 @@ describe('printable receipt fields', () => {
       expect(document.body).toHaveTextContent('Ada Attendant');
       expect(document.body).toHaveTextContent('Grace Hopper');
       expect(document.body).toHaveTextContent('08012345678');
-      expect(document.body).toHaveTextContent('12 Marina Road, Lagos');
+      expect(document.body).not.toHaveTextContent('12 Marina Road, Lagos');
       expect(document.body).toHaveTextContent('Paracetamol x2');
       expect(document.body).toHaveTextContent('₦210.00');
     });
   });
 
-  it('renders all new fields on the supermarket printable receipt', async () => {
+  it('prints the business address but not the customer address on supermarket receipts', async () => {
     localStorage.setItem('supermarket_cart', JSON.stringify([
       { id: 22, name: 'Bottled Water', unitPrice: 50, quantity: 3, stock: 20, barcode: 'SM-22' },
     ]));
@@ -99,7 +99,7 @@ describe('printable receipt fields', () => {
       expect(document.body).toHaveTextContent('Ada Attendant');
       expect(document.body).toHaveTextContent('Grace Hopper');
       expect(document.body).toHaveTextContent('08012345678');
-      expect(document.body).toHaveTextContent('12 Marina Road, Lagos');
+      expect(document.body).not.toHaveTextContent('12 Marina Road, Lagos');
       expect(document.body).toHaveTextContent('Bottled Water x3');
       expect(document.body).toHaveTextContent('₦161.25');
     });
