@@ -226,6 +226,17 @@ const AddCustomer = () => {
                             className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[13px] font-black text-slate-900 outline-none tabular-nums"
                           />
                        </div>
+                       <div className="space-y-1.5">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Customer Address</label>
+                          <textarea
+                            name="address"
+                            value={formData.address}
+                            onChange={handleChange}
+                            rows="2"
+                            placeholder="Street, area, city"
+                            className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[13px] font-bold text-slate-900 outline-none resize-y"
+                          />
+                       </div>
                     </div>
                  </section>
               </div>

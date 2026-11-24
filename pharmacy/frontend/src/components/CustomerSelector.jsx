@@ -7,7 +7,7 @@ const CustomerSelector = ({ value, onChange, tone = 'emerald' }) => {
   const [customers, setCustomers] = useState([]);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ first_name: '', last_name: '', phone_number: '' });
+  const [form, setForm] = useState({ first_name: '', last_name: '', phone_number: '', address: '' });
 
   const loadCustomers = async () => {
     try {
@@ -41,7 +41,7 @@ const CustomerSelector = ({ value, onChange, tone = 'emerald' }) => {
       }
       setCustomers((current) => [...current, customer]);
       onChange(String(customer.id));
-      setForm({ first_name: '', last_name: '', phone_number: '' });
+      setForm({ first_name: '', last_name: '', phone_number: '', address: '' });
       setOpen(false);
       toast.success('Customer registered and attached to this sale.');
     } catch (error) {
@@ -68,12 +68,13 @@ const CustomerSelector = ({ value, onChange, tone = 'emerald' }) => {
       {open && (
         <div className="fixed inset-0 z-[120] bg-slate-900/50 flex items-center justify-center p-4">
           <form onSubmit={registerCustomer} className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 space-y-4">
-            <div><h3 className="text-base font-black text-slate-900">Register customer</h3><p className="text-[11px] text-slate-400 mt-1">The name and phone number will appear on the receipt.</p></div>
+            <div><h3 className="text-base font-black text-slate-900">Register customer</h3><p className="text-[11px] text-slate-400 mt-1">The customer name, phone, and optional address will appear on the receipt.</p></div>
             <div className="grid grid-cols-2 gap-3">
               <input required placeholder="First name" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} className="px-3 py-2 rounded-lg border border-slate-200 text-sm" />
               <input required placeholder="Last name" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} className="px-3 py-2 rounded-lg border border-slate-200 text-sm" />
             </div>
             <input required type="tel" placeholder="Phone number" value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+            <textarea placeholder="Customer address (optional)" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows="2" className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm resize-y" />
             <div className="flex gap-2 justify-end"><button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-slate-500">Cancel</button><button disabled={saving} className={`px-4 py-2 rounded-lg ${buttonClass} text-white text-sm font-black`}>{saving ? 'Saving…' : 'Register customer'}</button></div>
           </form>
         </div>

@@ -22,7 +22,7 @@ const SupermarketInventory = () => {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('All'); // 'All' | 'Low Stock' | 'Expiring Soon'
+  const [activeFilter, setActiveFilter] = useState('All'); // 'All' | 'Low Stock' | 'Out of Stock' | 'Expiring Soon'
   const location = useLocation();
 
   useEffect(() => {
@@ -168,11 +168,13 @@ const SupermarketInventory = () => {
     }
 
     const isLow = (item.stock || 0) <= (item.reorder_level || 10);
+    const isOutOfStock = (parseInt(item.stock, 10) || 0) <= 0;
     const isExpiring = item.expiry_date &&
       (new Date(item.expiry_date) - new Date()) / (1000 * 60 * 60 * 24) < 60;
 
     let matchesFilter = true;
     if (activeFilter === 'Low Stock') matchesFilter = isLow;
+    else if (activeFilter === 'Out of Stock') matchesFilter = isOutOfStock;
     else if (activeFilter === 'Expiring Soon') matchesFilter = isExpiring;
 
     return matchesSearch && matchesCategory && matchesFilter;
@@ -293,6 +295,12 @@ const SupermarketInventory = () => {
             <FaFilter /> Low Stock
           </button>
           <button
+            onClick={() => setActiveFilter(activeFilter === 'Out of Stock' ? 'All' : 'Out of Stock')}
+            className={`px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase flex items-center gap-2 transition-all ${activeFilter === 'Out of Stock' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+          >
+            <FaBox /> Out of Stock
+          </button>
+          <button
             onClick={handleExportCSV}
             className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[9px] font-black uppercase text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition-all"
           >
@@ -320,6 +328,7 @@ const SupermarketInventory = () => {
               {filteredData
                 .map((item) => {
                   const isLow = (item.stock || 0) <= (item.reorder_level || 10);
+                  const isOutOfStock = (parseInt(item.stock, 10) || 0) <= 0;
 
                   // Expiry alert: within 2 months (60 days)
                   const isExpiring = item.expiry_date &&
@@ -349,8 +358,8 @@ const SupermarketInventory = () => {
                         </span>
                       </td>
                       <td className="px-5 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${isLow ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                          {isLow ? "Low Stock" : "In Stock"}
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${isOutOfStock ? 'bg-slate-100 text-slate-700' : isLow ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                          {isOutOfStock ? "Out of Stock" : isLow ? "Low Stock" : "In Stock"}
                         </span>
                       </td>
                       <td className="px-5 py-3">
