@@ -26,14 +26,6 @@ def ensure_admin():
         User.objects.create_superuser(username=admin_username, email=admin_email, password=admin_password)
         print(f"Created new superuser '{admin_username}' with email '{admin_email}'.")
 
-    # Standardize passwords for remaining staff users if needed
-    staff_users = User.objects.filter(is_staff=True)
-    for staff in staff_users:
-        if staff.username != admin_username:
-            staff.set_password(admin_password)
-            staff.save()
-            print(f"Standardized password for staff user: {staff.username}")
-
 
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
