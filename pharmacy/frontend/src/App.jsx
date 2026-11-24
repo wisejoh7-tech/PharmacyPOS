@@ -263,6 +263,13 @@ function App() {
                </Layout>
              </PrivateRoute>
            } />
+           <Route path="/customers/:customerId/edit" element={
+             <PrivateRoute adminOnly={true}>
+               <Layout>
+                 <AddCustomer />
+               </Layout>
+             </PrivateRoute>
+           } />
            <Route path="/customers/new" element={
              <PrivateRoute allowedRoles={['sales_attendant', 'sales_rep', 'pharmacist']}>
                <Layout>

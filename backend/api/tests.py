@@ -5,7 +5,7 @@ from django.test import TestCase, TransactionTestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import Category, Drug, Product, Staff
+from .models import Category, Customer, Drug, Product, Staff
 
 class HealthCheckAndApiTests(TestCase):
     def setUp(self):
@@ -647,3 +647,57 @@ class StaffIdentityAndInventoryPermissionRegressionTests(TestCase):
         self.client.force_authenticate(user=self.admin)
         self.assertEqual(self.client.patch(f"/api/drugs/{drug.data['id']}/", {'unit_price':'12.50'}).data['unit_price'], '12.50')
         self.assertEqual(self.client.patch(f"/api/products/{product.data['id']}/", {'unit_price':'8.25'}).data['unit_price'], '8.25')
+
+
+class CustomerAdminMutationPermissionTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.customer = Customer.objects.create(
+            first_name='Amina',
+            last_name='Bello',
+            customer_id='CUST-TEST-001',
+            phone_number='08000000000',
+        )
+        self.staff_user = User.objects.create_user(username='customer-staff', password='staff-pass', is_staff=True)
+        Staff.objects.create(
+            full_name='Customer Staff',
+            role='Pharmacist',
+            employee_id='CUSTOMER-STAFF',
+            user=self.staff_user,
+        )
+        self.admin_user = User.objects.create_user(username='customer-admin', password='admin-pass', is_staff=True)
+        Staff.objects.create(
+            full_name='Customer Admin',
+            role='Administrator',
+            employee_id='CUSTOMER-ADMIN',
+            user=self.admin_user,
+        )
+
+    def test_staff_can_register_but_cannot_edit_or_delete_customers(self):
+        self.client.force_authenticate(user=self.staff_user)
+        created = self.client.post('/api/customers/', {
+            'first_name': 'New',
+            'last_name': 'Customer',
+            'customer_id': 'CUST-TEST-002',
+            'phone_number': '08000000001',
+        })
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED, created.data)
+
+        updated = self.client.patch(f'/api/customers/{self.customer.id}/', {'phone_number': '08009999999'})
+        self.assertEqual(updated.status_code, status.HTTP_403_FORBIDDEN)
+        self.customer.refresh_from_db()
+        self.assertEqual(self.customer.phone_number, '08000000000')
+
+        deleted = self.client.delete(f'/api/customers/{self.customer.id}/')
+        self.assertEqual(deleted.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Customer.objects.filter(pk=self.customer.id).exists())
+
+    def test_administrator_can_edit_and_delete_customers(self):
+        self.client.force_authenticate(user=self.admin_user)
+        updated = self.client.patch(f'/api/customers/{self.customer.id}/', {'address': '12 Marina Road'})
+        self.assertEqual(updated.status_code, status.HTTP_200_OK, updated.data)
+        self.assertEqual(updated.data['address'], '12 Marina Road')
+
+        deleted = self.client.delete(f'/api/customers/{self.customer.id}/')
+        self.assertEqual(deleted.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Customer.objects.filter(pk=self.customer.id).exists())

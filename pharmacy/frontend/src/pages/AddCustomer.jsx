@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import customerService from '../services/customerService';
 import toast from 'react-hot-toast';
 import { FaUserPlus, FaTimes, FaUser, FaHistory, FaPlus, FaCamera } from 'react-icons/fa';
@@ -7,7 +7,10 @@ import { useRef } from 'react';
 
 const AddCustomer = () => {
   const navigate = useNavigate();
+  const { customerId } = useParams();
+  const isEditing = Boolean(customerId);
   const [loading, setLoading] = useState(false);
+  const [loadingCustomer, setLoadingCustomer] = useState(Boolean(customerId));
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -24,6 +27,41 @@ const AddCustomer = () => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (!customerId) return;
+    let cancelled = false;
+
+    customerService.getCustomer(customerId)
+      .then(({ data }) => {
+        if (!data) throw new Error('Customer record was not found.');
+        if (!cancelled) {
+          setFormData(previous => ({
+            ...previous,
+            first_name: data.first_name || '',
+            last_name: data.last_name || '',
+            date_of_birth: data.date_of_birth || '',
+            phone_number: data.phone_number || '',
+            email: data.email || '',
+            address: data.address || '',
+            allergies: data.allergies || '',
+            chronic_conditions: data.chronic_conditions || '',
+            medications: data.medications || '',
+            photo: data.photo || null,
+          }));
+        }
+      })
+      .catch(error => {
+        console.error('Error loading customer:', error);
+        toast.error('Could not load customer record.');
+        navigate('/customers');
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCustomer(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [customerId, navigate]);
 
   const startCamera = async () => {
     try {
@@ -70,18 +108,21 @@ const AddCustomer = () => {
         return;
       }
       setLoading(true);
-      const generatedId = "CUST-" + Math.floor(Math.random() * 10000);
       const payload = {
         ...formData,
-        customer_id: generatedId,
+        ...(!isEditing && { customer_id: `CUST-${Math.floor(Math.random() * 10000)}` }),
         date_of_birth: formData.date_of_birth || null,
         email: formData.email || null,
         phone_number: formData.phone_number || "N/A"
       };
-       
-      await customerService.createCustomer(payload);
 
-      toast.success('Patient registry updated.');
+      if (isEditing) {
+        await customerService.updateCustomer(customerId, payload);
+      } else {
+        await customerService.createCustomer(payload);
+      }
+
+      toast.success(isEditing ? 'Customer details updated.' : 'Patient registry updated.');
       navigate('/customers');
     } catch (error) {
       console.error(error);
@@ -95,13 +136,13 @@ const AddCustomer = () => {
     <div className="flex-1 flex flex-col h-screen overflow-hidden text-sm bg-slate-50/30">
         <header className="bg-white px-5 py-3 border-b border-slate-100 flex justify-between items-center h-14">
           <div>
-            <h1 className="text-sm font-black text-slate-900 tracking-tight uppercase font-outfit leading-none">Add Patient Profile</h1>
+            <h1 className="text-sm font-black text-slate-900 tracking-tight uppercase font-outfit leading-none">{isEditing ? 'Edit Customer Profile' : 'Add Patient Profile'}</h1>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-1">Registry of medical clinical history</p>
           </div>
           <div className="flex gap-3">
             <button className="text-[12px] font-black text-slate-400 uppercase tracking-widest px-4 py-2 hover:bg-slate-50 rounded-lg" onClick={() => navigate('/customers')}>Discard</button>
-            <button className="bg-emerald-500 text-white text-[12px] font-black uppercase tracking-widest px-6 py-2 rounded-lg border border-emerald-500 shadow-none hover:bg-emerald-600 transition-all min-w-[140px]" onClick={handleSave} disabled={loading}>
-              {loading ? "SAVING..." : "AUTHORIZE PROFILE"}
+            <button className="bg-emerald-500 text-white text-[12px] font-black uppercase tracking-widest px-6 py-2 rounded-lg border border-emerald-500 shadow-none hover:bg-emerald-600 transition-all min-w-[140px]" onClick={handleSave} disabled={loading || loadingCustomer}>
+              {loading ? "SAVING..." : isEditing ? "SAVE CHANGES" : "AUTHORIZE PROFILE"}
             </button>
           </div>
         </header>
@@ -252,14 +293,13 @@ const AddCustomer = () => {
                     <div className="space-y-4">
                        <div className="space-y-1.5">
                           <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Allergies</label>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                             <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter flex items-center gap-1">Penicillin <FaTimes className="cursor-pointer" /></span>
-                             <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter flex items-center gap-1">Peanuts <FaTimes className="cursor-pointer" /></span>
-                          </div>
-                          <input 
-                             type="text" 
-                             placeholder="ADD ALLERGEN +"
-                             className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[11px] font-black text-slate-400 outline-none tracking-widest uppercase focus:bg-white" 
+                          <textarea
+                             name="allergies"
+                             value={formData.allergies}
+                             onChange={handleChange}
+                             rows="2"
+                             placeholder="List allergies"
+                             className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[13px] font-bold text-slate-900 outline-none resize-y"
                           />
                        </div>
 

@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -13,7 +14,7 @@ from .serializers import (
     CategorySerializer, DrugSerializer, StaffSerializer, CustomerSerializer,
     PrescriptionSerializer, SaleSerializer, SaleReturnSerializer,
     ProductSerializer, SupermarketSaleSerializer, SystemSettingsSerializer, UserProfileSerializer, UserSerializer, ExpenseSerializer,
-    CustomTokenObtainPairSerializer
+    CustomTokenObtainPairSerializer, is_admin_role
 )
 
 def staff_for_request(request):
@@ -55,6 +56,20 @@ class StaffViewSet(viewsets.ModelViewSet):
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+
+    def _require_admin_for_mutation(self):
+        user = self.request.user
+        staff = staff_for_request(self.request)
+        if not user.is_superuser and not is_admin_role(staff):
+            raise PermissionDenied('Only administrators can edit or delete customers.')
+
+    def update(self, request, *args, **kwargs):
+        self._require_admin_for_mutation()
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self._require_admin_for_mutation()
+        return super().destroy(request, *args, **kwargs)
 
 class PrescriptionViewSet(viewsets.ModelViewSet):
     queryset = Prescription.objects.all()

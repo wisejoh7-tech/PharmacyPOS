@@ -1,30 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import customerService from '../services/customerService';
-import { 
-  FaSearch, FaPlus, FaUsers, FaUserCheck, FaIdCard, FaFilter, FaDownload, FaChevronRight
+import { AuthContext } from '../context/AuthContext';
+import toast from 'react-hot-toast';
+import {
+  FaSearch, FaPlus, FaUsers, FaUserCheck, FaIdCard, FaFilter, FaDownload, FaChevronRight,
+  FaEdit, FaTrash
 } from 'react-icons/fa';
 
 const CustomerManagement = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const role = (user?.role || '').toLowerCase();
+  const isAdmin = Boolean(user?.isAdmin || ['admin', 'administrator', 'manager', 'director'].some(marker => role.includes(marker)));
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
+  const handleDelete = async (customer) => {
+    const fullName = `${customer.first_name} ${customer.last_name}`.trim();
+    if (!window.confirm(`Delete ${fullName}'s customer record? This cannot be undone.`)) return;
 
-  const fetchCustomers = async () => {
     try {
-      const response = await customerService.getCustomers();
-      setCustomers(response.data.results || response.data || []);
+      await customerService.deleteCustomer(customer.id);
+      setCustomers(current => current.filter(item => item.id !== customer.id));
+      toast.success('Customer record deleted.');
     } catch (error) {
-      console.error("Error fetching customers:", error);
-    } finally {
-      setLoading(false);
+      console.error('Error deleting customer:', error);
+      toast.error(error.response?.status === 403 ? 'Only administrators can delete customers.' : 'Could not delete customer.');
     }
   };
+
+  useEffect(() => {
+    let active = true;
+    const loadCustomers = async () => {
+      try {
+        const response = await customerService.getCustomers();
+        if (active) setCustomers(response.data.results || response.data || []);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    loadCustomers();
+    return () => { active = false; };
+  }, []);
 
   const getInitials = (firstName, lastName) => {
       const first = firstName ? firstName.charAt(0).toUpperCase() : '';
@@ -141,7 +162,7 @@ const CustomerManagement = () => {
                   <th className="px-5 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Contact Information</th>
                   <th className="px-5 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Alerts</th>
                   <th className="px-5 py-3 text-[11px] font-black text-slate-900 uppercase tracking-widest">Date of Birth</th>
-                  <th className="px-5 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Records</th>
+                  <th className="px-5 py-3 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -192,6 +213,30 @@ const CustomerManagement = () => {
                           >
                             VIEW <FaChevronRight className="ml-1" />
                           </button>
+                          {isAdmin && (
+                            <>
+                              <button
+                                className="text-[10px] py-1 px-2 border border-blue-100 rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white"
+                                aria-label={`Edit ${cust.first_name} ${cust.last_name}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/customers/${cust.id}/edit`);
+                                }}
+                              >
+                                <FaEdit />
+                              </button>
+                              <button
+                                className="text-[10px] py-1 px-2 border border-red-100 rounded-lg text-red-700 bg-red-50 hover:bg-red-600 hover:text-white"
+                                aria-label={`Delete ${cust.first_name} ${cust.last_name}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(cust);
+                                }}
+                              >
+                                <FaTrash />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
