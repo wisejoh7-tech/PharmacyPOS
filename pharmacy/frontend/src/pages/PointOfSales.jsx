@@ -496,7 +496,7 @@ const PointOfSales = () => {
             <div className="text-center mb-6">
               <PharmacyLogo className="w-16 h-16 mx-auto mb-2" />
               <h2 className="text-lg font-black text-slate-900 uppercase">{receiptSettings.shop_name}</h2>
-              <p className="text-xs text-slate-500">{receiptSettings.address || receiptSettings.location || 'Address not configured'}</p>
+              <p className="text-xs text-slate-500"><span className="font-bold">Business Address:</span> {receiptSettings.address || receiptSettings.location || 'Not configured'}</p>
               <p className="text-xs text-slate-400">Pharmacy Receipt · Success</p>
             </div>
             <div className="space-y-2 text-[12px] mb-4 pb-4 border-b border-dashed">
@@ -531,7 +531,7 @@ const PointOfSales = () => {
       )}
       <div className="hidden print:block print:fixed print:inset-0 print:bg-white print:z-[200]">
         {lastSale && <div className="p-8 w-full max-w-xs mx-auto text-black font-mono">
-          <div className="text-center mb-5"><PharmacyLogo className="w-16 h-16 mx-auto" /><h1 className="text-lg font-bold uppercase">{receiptSettings.shop_name}</h1><p className="text-xs">{receiptSettings.address || receiptSettings.location || 'Address not configured'}</p><p className="text-xs">Pharmacy Receipt</p></div>
+          <div className="text-center mb-5"><PharmacyLogo className="w-16 h-16 mx-auto" /><h1 className="text-lg font-bold uppercase">{receiptSettings.shop_name}</h1><p className="text-xs"><strong>Business Address:</strong> {receiptSettings.address || receiptSettings.location || 'Not configured'}</p><p className="text-xs">Pharmacy Receipt</p></div>
           <div className="text-xs space-y-1 border-b border-dashed pb-3 mb-3"><div>Transaction: {lastSale.id}</div><div>Date: {lastSale.date}</div><div>Attendant: {lastSale.sellerName}</div><div>Customer: {lastSale.customerName}</div><div>Phone: {lastSale.customerPhone}</div></div>
           <div className="text-xs space-y-2 border-b border-dashed pb-3 mb-3">{lastSale.items.map((item) => <div key={item.id} className="flex justify-between"><span>{item.name} x{item.quantity}</span><span>₦{(item.unitPrice * item.quantity).toFixed(2)}</span></div>)}</div>
           <div className="flex justify-between font-bold"><span>TOTAL</span><span>₦{lastSale.total.toFixed(2)}</span></div>

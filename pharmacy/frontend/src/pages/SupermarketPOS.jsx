@@ -515,7 +515,7 @@ const SupermarketPOS = () => {
               <div className="text-center mb-6">
                 <PharmacyLogo className="w-16 h-16 mx-auto mb-2" />
                 <h2 className="text-lg font-black text-slate-900 font-outfit uppercase">{receiptSettings.shop_name}</h2>
-                <p className="text-[12px] font-bold text-slate-500">{receiptSettings.address || receiptSettings.location || 'Address not configured'}</p>
+                <p className="text-[12px] font-bold text-slate-500"><span className="font-black">Business Address:</span> {receiptSettings.address || receiptSettings.location || 'Not configured'}</p>
                 <p className="text-[12px] font-bold text-slate-400">Retail Receipt · VISIT US AGAIN SOON</p>
               </div>
               <div className="space-y-2 text-[12px] mb-4 border-b border-dashed border-slate-200 pb-4">
@@ -557,7 +557,7 @@ const SupermarketPOS = () => {
                 <div className="text-center mb-8">
                     <PharmacyLogo className="w-16 h-16 mx-auto mb-2" />
                     <h1 className="text-xl font-bold uppercase">{receiptSettings.shop_name}</h1>
-                    <p className="text-xs">{receiptSettings.address || receiptSettings.location || 'Address not configured'}</p>
+                    <p className="text-xs"><strong>Business Address:</strong> {receiptSettings.address || receiptSettings.location || 'Not configured'}</p>
                     <p className="text-xs">Supermarket Receipt · Retail & Quality Goods</p>
                 </div>
                 <div className="mb-4 border-b border-dashed pb-4 text-xs space-y-1">
