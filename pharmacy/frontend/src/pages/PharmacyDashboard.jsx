@@ -119,15 +119,8 @@ const PharmacyDashboard = () => {
             </svg>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-blue-500/20 text-blue-300 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-blue-400/30">
-                New Light Medicine and Store  Portal
-              </span>
-              <span className="text-slate-400 text-xs">•</span>
-              <span className="text-slate-300 text-xs font-bold">{settings.shop_name || 'New Light health Care Connect'}</span>
-            </div>
-            <h1 className="text-base font-black text-white tracking-tight uppercase font-outfit mt-1">
-              Newlight Health Medicine and Dashboard
+            <h1 className="text-base font-black text-white tracking-tight uppercase font-outfit">
+              Store Overview
             </h1>
           </div>
         </div>
