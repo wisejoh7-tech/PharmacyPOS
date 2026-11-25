@@ -6,6 +6,11 @@
 - [x] Pharmacy and supermarket inventory lists provide a separate out-of-stock filter and label zero-stock products distinctly.
 - [x] Both POS receipts show the admin-configured business address near the login-page logo, not the customer's address; customer registration captures and saves an optional customer address in the profile.
 - [x] Administrators can edit and delete customer records from the registry; the API rejects customer edits and deletions from non-admin users while preserving staff customer registration.
+- [ ] Admins can maintain a nullable per-unit purchase cost for pharmacy drugs and supermarket products; non-admin inventory writes cannot set or change it, and non-admin inventory/sale responses do not reveal cost fields.
+- [ ] New pharmacy and supermarket sale lines snapshot the product cost at checkout; historical sale lines without a snapshot stay explicitly uncosted and are never assigned a guessed zero cost.
+- [ ] Sales Reports cover pharmacy and supermarket sales with date-range, sale-type, payment-method, staff, product, and text-search filters; the report shows transaction and line-item sales, refunds, net sales, sales trend, payment/staff/product breakdowns, and average transaction value.
+- [ ] Admin sales reports calculate cost of goods sold, gross profit, gross margin, and cost coverage only from fully costed sales; historical or partially uncosted sales are visibly identified, and non-admin report responses omit cost/profit figures.
+- [ ] Sales Reports export the currently filtered transactions and details to CSV and support a print-friendly layout that can be saved as PDF from the browser.
 - [ ] Configure Render's PostgreSQL `DATABASE_URL` and apply migration `0020_staff_user_link.py` after the user supplies/authorizes the hosted database operation; no live Render database has been accessed or changed.
 
 - [ ] Sales attendants and sales reps open directly to Pharmacy POS after sign-in and can switch to Supermarket POS.

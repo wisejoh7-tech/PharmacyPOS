@@ -26,6 +26,7 @@ const AddNewDrugs = () => {
       expiry_date: '',
       stock_date: '',
       unit_price: '',
+      unit_cost: '',
       stock: '',
       reorder_level: '',
       barcode: '',
@@ -126,7 +127,8 @@ const AddNewDrugs = () => {
                ...drug,
                expiry_date: formatDate(drug.expiry_date),
                stock_date: formatDate(drug.stock_date) || (isEdit ? '' : formData.stock_date),
-               category_obj: drug.category_obj || ''
+               category_obj: drug.category_obj || '',
+               unit_cost: drug.unit_cost ?? ''
             });
          }
       } catch (err) {
@@ -169,12 +171,13 @@ const AddNewDrugs = () => {
 
          const fieldsWithoutPrice = { ...formData };
          delete fieldsWithoutPrice.unit_price;
+         delete fieldsWithoutPrice.unit_cost;
          const payload = {
             ...(isAdmin ? formData : fieldsWithoutPrice),
             barcode: formData.barcode?.trim() || null,
             expiry_date: parseDate(formData.expiry_date),
             stock_date: parseDate(formData.stock_date),
-            ...(isAdmin ? { unit_price: parseFloat(formData.unit_price) || 0 } : {}),
+            ...(isAdmin ? { unit_price: parseFloat(formData.unit_price) || 0, unit_cost: formData.unit_cost === '' ? null : parseFloat(formData.unit_cost) } : {}),
             stock: parseInt(formData.stock) || 0,
             reorder_level: parseInt(formData.reorder_level) || 10
          };
@@ -362,6 +365,12 @@ const AddNewDrugs = () => {
                         />}
                      </div>
                   </div>
+
+                  {isAdmin && <div className="space-y-2">
+                     <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Purchase cost per unit (₦)</label>
+                     <input type="number" min="0" step="0.01" name="unit_cost" value={formData.unit_cost ?? ''} onChange={handleChange} placeholder="Leave blank if unknown" className="w-full px-4 py-2.5 bg-amber-50/60 border border-amber-100 rounded-lg text-xs font-black text-amber-800 tabular-nums focus:ring-2 focus:ring-amber-100 outline-none" />
+                     <p className="text-[10px] text-slate-400">Used for future profit calculations; older sales are not backfilled.</p>
+                  </div>}
 
                   <div className="grid grid-cols-2 gap-4">
                      <div className="space-y-2">

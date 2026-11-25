@@ -19,6 +19,7 @@ const AddNewProduct = () => {
         name: '',
         category_obj: '',
         unit_price: '',
+        unit_cost: '',
         stock: '',
         reorder_level: 10,
         barcode: '',
@@ -37,7 +38,7 @@ const AddNewProduct = () => {
     useEffect(() => {
         if (isEdit) {
             productService.getProduct(id).then(({ data }) => {
-                if (data) setFormData(prev => ({ ...prev, ...data, unit_price: data.unit_price ?? '' }));
+                if (data) setFormData(prev => ({ ...prev, ...data, unit_price: data.unit_price ?? '', unit_cost: data.unit_cost ?? '' }));
             }).catch(error => {
                 console.error('Failed to load product', error);
                 toast.error('Failed to load product details.');
@@ -131,12 +132,13 @@ const AddNewProduct = () => {
 
             const fieldsWithoutPrice = { ...formData };
             delete fieldsWithoutPrice.unit_price;
+            delete fieldsWithoutPrice.unit_cost;
             const payload = {
                 ...(isAdmin ? formData : fieldsWithoutPrice),
                 barcode: formData.barcode?.trim() || null,
                 stock_date: parseDate(formData.stock_date),
                 expiry_date: parseDate(formData.expiry_date),
-                ...(isAdmin ? { unit_price: formData.unit_price } : {})
+                ...(isAdmin ? { unit_price: formData.unit_price, unit_cost: formData.unit_cost === '' ? null : parseFloat(formData.unit_cost) } : {})
             };
 
             if (isEdit) await productService.updateProduct(id, payload);
@@ -321,6 +323,12 @@ const AddNewProduct = () => {
                                     />
                                 </div>
                             </div>
+
+                            {isAdmin && <div className="space-y-2">
+                                <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Purchase cost per unit (₦)</label>
+                                <input type="number" min="0" step="0.01" name="unit_cost" value={formData.unit_cost ?? ''} onChange={handleChange} placeholder="Leave blank if unknown" className="w-full px-4 py-2.5 bg-amber-50/60 border border-amber-100 rounded-lg text-[13px] font-black text-amber-800 focus:ring-2 focus:ring-amber-100 outline-none" />
+                                <p className="text-[10px] text-slate-400">Saved on future sale lines to calculate gross profit.</p>
+                            </div>}
 
                             <div className="space-y-2">
                                 <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest">Reorder Threshold</label>

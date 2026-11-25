@@ -16,6 +16,7 @@ from .serializers import (
     ProductSerializer, SupermarketSaleSerializer, SystemSettingsSerializer, UserProfileSerializer, UserSerializer, ExpenseSerializer,
     CustomTokenObtainPairSerializer, is_admin_role
 )
+from .reporting import build_sales_report
 
 def staff_for_request(request):
     if not getattr(request.user, 'is_authenticated', False):
@@ -144,7 +145,8 @@ class SaleViewSet(viewsets.ModelViewSet):
                     drug=drug,
                     quantity=item['quantity'],
                     unit_price=unit_price,
-                    subtotal=subtotal
+                    subtotal=subtotal,
+                    unit_cost=drug.unit_cost
                 )
                 
                 # Update stock
@@ -288,7 +290,8 @@ class SupermarketSaleViewSet(viewsets.ModelViewSet):
                     product=product,
                     quantity=item['quantity'],
                     unit_price=unit_price,
-                    subtotal=subtotal
+                    subtotal=subtotal,
+                    unit_cost=product.unit_cost
                 )
                 
                 # Update stock
@@ -333,9 +336,13 @@ class ReportsView(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='sales')
     def sales_report(self, request):
-        sales = Sale.objects.all().order_by('-created_at')
-        serializer = SaleSerializer(sales, many=True)
-        return Response(serializer.data)
+        staff = staff_for_request(request)
+        include_profit = bool(request.user.is_superuser or is_admin_role(staff))
+        try:
+            report = build_sales_report(request.query_params, include_profit=include_profit)
+        except ValueError as error:
+            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(report)
 
     @action(detail=False, methods=['get'], url_path='inventory-turnover')
     def inventory_turnover(self, request):

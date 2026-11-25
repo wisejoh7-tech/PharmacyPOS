@@ -16,6 +16,7 @@ class Drug(models.Model):
     form = models.CharField(max_length=50)
     expiry_date = models.DateField(blank=True, null=True)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     stock = models.IntegerField(default=0)
     reorder_level = models.IntegerField(default=10)
     barcode = models.CharField(max_length=100, blank=True, null=True, unique=True)
@@ -90,6 +91,7 @@ class SaleItem(models.Model):
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         drug_name = self.drug.name if self.drug else "Unknown Drug"
@@ -111,6 +113,7 @@ class Product(models.Model):
     category = models.CharField(max_length=100, null=True, blank=True)
     category_obj = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     stock = models.IntegerField(default=0)
     reorder_level = models.IntegerField(default=10)
     barcode = models.CharField(max_length=100, blank=True, null=True, unique=True)
@@ -137,6 +140,7 @@ class SupermarketSaleItem(models.Model):
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         product_name = self.product.name if self.product else "Unknown Product"

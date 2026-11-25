@@ -119,7 +119,14 @@ class DrugSerializer(InventoryPricePermissionMixin, serializers.ModelSerializer)
     def validate(self, attrs):
         if not self._request_is_admin():
             attrs.pop('unit_price', None)
+            attrs.pop('unit_cost', None)
         return attrs
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not self._request_is_admin():
+            data.pop('unit_cost', None)
+        return data
 
     def get_category_name(self, obj):
         if obj.category_obj:
@@ -252,8 +259,17 @@ class SaleItemSerializer(serializers.ModelSerializer):
     drug_name = serializers.ReadOnlyField(source='drug.name')
     class Meta:
         model = SaleItem
-        fields = ['id', 'sale', 'drug', 'drug_name', 'quantity', 'unit_price', 'subtotal']
+        fields = ['id', 'sale', 'drug', 'drug_name', 'quantity', 'unit_price', 'subtotal', 'unit_cost']
 
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        staff = request_staff_record(self)
+        if not (user and user.is_authenticated and (user.is_superuser or is_admin_role(staff))):
+            data.pop('unit_cost', None)
+        return data
 class SaleSerializer(serializers.ModelSerializer):
     items = SaleItemSerializer(many=True, read_only=True)
     staff_name = serializers.ReadOnlyField(source='staff.full_name')
@@ -283,7 +299,14 @@ class ProductSerializer(InventoryPricePermissionMixin, serializers.ModelSerializ
     def validate(self, attrs):
         if not self._request_is_admin():
             attrs.pop('unit_price', None)
+            attrs.pop('unit_cost', None)
         return attrs
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not self._request_is_admin():
+            data.pop('unit_cost', None)
+        return data
 
     def get_category_name(self, obj):
         if obj.category_obj:
@@ -319,8 +342,17 @@ class SupermarketSaleItemSerializer(serializers.ModelSerializer):
     product_name = serializers.ReadOnlyField(source='product.name')
     class Meta:
         model = SupermarketSaleItem
-        fields = ['id', 'sale', 'product', 'product_name', 'quantity', 'unit_price', 'subtotal']
+        fields = ['id', 'sale', 'product', 'product_name', 'quantity', 'unit_price', 'subtotal', 'unit_cost']
 
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        staff = request_staff_record(self)
+        if not (user and user.is_authenticated and (user.is_superuser or is_admin_role(staff))):
+            data.pop('unit_cost', None)
+        return data
 class SupermarketSaleSerializer(serializers.ModelSerializer):
     items = SupermarketSaleItemSerializer(many=True, read_only=True)
     staff_name = serializers.ReadOnlyField(source='staff.full_name')
