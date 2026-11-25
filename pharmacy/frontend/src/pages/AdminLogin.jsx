@@ -57,7 +57,6 @@ const AdminLogin = () => {
             </div>
             <div className="brand-text-block">
               <span className="brand-title-primary">New Light Health Services</span>
-              <span className="brand-title-secondary">and Store</span>
             </div>
           </div>
 

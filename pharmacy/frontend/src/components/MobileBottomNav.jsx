@@ -7,44 +7,40 @@ const MobileBottomNav = ({ onToggleSidebar }) => {
   const location = useLocation();
   const { user } = useContext(AuthContext);
 
-  const role = (user?.role || 'Admin').toLowerCase();
+  const role = (user?.role || '').toLowerCase();
   const isAdmin = user?.isAdmin || role.includes('admin') || role.includes('manager');
   const isSalesAttendant = role.includes('cashier') || role.includes('attendant') || (role.includes('sales') && !role.includes('rep'));
   const isSalesRep = role.includes('rep');
   const isPharmacist = role.includes('pharmacist') || role.includes('doctor');
   const isNurse = role.includes('nurse');
 
-  let navItems = [{ name: 'Home', path: '/', icon: <FaThLarge /> }];
+  let navItems = [];
 
   if (isAdmin) {
     navItems = [
-      { name: 'Home', path: '/', icon: <FaThLarge /> },
+      { name: 'Dashboard', path: '/', icon: <FaThLarge /> },
       { name: 'POS', path: '/pos', icon: <FaCashRegister /> },
       { name: 'Stock', path: '/inventory', icon: <FaBox /> },
       { name: 'Rx', path: '/prescriptions/review', icon: <FaBriefcaseMedical /> },
     ];
   } else if (isSalesAttendant) {
     navItems = [
-      { name: 'Home', path: '/', icon: <FaThLarge /> },
       { name: 'POS', path: '/pos', icon: <FaCashRegister /> },
       { name: 'Retail POS', path: '/supermarket/pos', icon: <FaShoppingCart /> },
     ];
   } else if (isSalesRep) {
     navItems = [
-      { name: 'Home', path: '/', icon: <FaThLarge /> },
       { name: 'Stock', path: '/inventory', icon: <FaBox /> },
       { name: 'POS', path: '/pos', icon: <FaCashRegister /> },
       { name: 'Retail POS', path: '/supermarket/pos', icon: <FaShoppingCart /> },
     ];
   } else if (isPharmacist) {
     navItems = [
-      { name: 'Home', path: '/', icon: <FaThLarge /> },
       { name: 'Patients', path: '/customers', icon: <FaUsers /> },
       { name: 'Rx', path: '/prescriptions/review', icon: <FaBriefcaseMedical /> },
     ];
   } else if (isNurse) {
     navItems = [
-      { name: 'Home', path: '/', icon: <FaThLarge /> },
       { name: 'Patients', path: '/customers', icon: <FaUsers /> },
       { name: 'Rx Care', path: '/prescriptions/review', icon: <FaBriefcaseMedical /> },
     ];

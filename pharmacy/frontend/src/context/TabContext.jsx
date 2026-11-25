@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { AuthContext } from './AuthContext';
 
 const TabContext = createContext();
 
@@ -55,6 +56,9 @@ export const getRouteTabInfo = (pathname) => {
 export const TabProvider = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, loading } = useContext(AuthContext);
+  const role = (user?.role || '').toLowerCase();
+  const isAdmin = Boolean(user?.isAdmin || role.includes('admin') || role.includes('manager'));
 
   // Load initial tabs from localStorage or default
   const [tabs, setTabs] = useState(() => {
@@ -81,17 +85,21 @@ export const TabProvider = ({ children }) => {
   // Persist tabs to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tabs));
+      const tabsToPersist = !loading && !isAdmin
+        ? tabs.filter((tab) => tab.id !== '/' && tab.path !== '/')
+        : tabs;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tabsToPersist));
     } catch (e) {
       console.error("Failed to persist workspace tabs", e);
     }
-  }, [tabs]);
+  }, [tabs, loading, isAdmin]);
 
   // Sync current route with workspace tabs
   useEffect(() => {
     const currentPath = location.pathname;
     // Don't create tabs for login or auth pages
     if (currentPath === '/login' || currentPath === '/forgot-password') return;
+    if (currentPath === '/' && !isAdmin) return;
 
     const { title, closable } = getRouteTabInfo(currentPath);
 
@@ -109,7 +117,7 @@ export const TabProvider = ({ children }) => {
     });
 
     setActiveTabId(currentPath);
-  }, [location.pathname]);
+  }, [location.pathname, isAdmin]);
 
   const openTab = useCallback((tabData) => {
     const id = tabData.id || tabData.path;
@@ -136,38 +144,51 @@ export const TabProvider = ({ children }) => {
       const targetTab = prevTabs.find((t) => t.id === tabId);
       if (!targetTab || targetTab.closable === false) return prevTabs;
 
-      const filtered = prevTabs.filter((t) => t.id !== tabId);
+      const remainingTabs = prevTabs.filter((t) => t.id !== tabId);
+      const filtered = isAdmin
+        ? remainingTabs
+        : remainingTabs.filter((t) => t.id !== '/' && t.path !== '/');
 
       // If we are closing the currently active tab, navigate to an adjacent tab
       if (activeTabId === tabId) {
         const closedIndex = prevTabs.findIndex((t) => t.id === tabId);
-        const nextActive = filtered[Math.max(0, closedIndex - 1)] || DEFAULT_HOME_TAB;
-        setActiveTabId(nextActive.id);
-        navigate(nextActive.path);
+        const nextActive = filtered[Math.max(0, closedIndex - 1)] || (isAdmin ? DEFAULT_HOME_TAB : null);
+        if (nextActive) {
+          setActiveTabId(nextActive.id);
+          navigate(nextActive.path);
+        } else {
+          setActiveTabId('/inventory');
+          navigate('/inventory');
+        }
       }
 
-      return filtered.length > 0 ? filtered : [DEFAULT_HOME_TAB];
+      return filtered.length > 0 ? filtered : (isAdmin ? [DEFAULT_HOME_TAB] : []);
     });
-  }, [activeTabId, navigate]);
+  }, [activeTabId, navigate, isAdmin]);
 
   const closeOtherTabs = useCallback((tabId) => {
     setTabs((prevTabs) => {
-      const filtered = prevTabs.filter((t) => t.closable === false || t.id === tabId);
+      const filtered = prevTabs.filter((t) => (isAdmin && t.closable === false) || t.id === tabId);
       return filtered;
     });
     switchTab(tabId);
-  }, [switchTab]);
+  }, [switchTab, isAdmin]);
 
   const closeAllTabs = useCallback(() => {
-    setTabs([DEFAULT_HOME_TAB]);
-    setActiveTabId('/');
-    navigate('/');
-  }, [navigate]);
+    setTabs(isAdmin ? [DEFAULT_HOME_TAB] : []);
+    const landingPath = isAdmin ? '/' : '/inventory';
+    setActiveTabId(landingPath);
+    navigate(landingPath);
+  }, [navigate, isAdmin]);
+
+  const visibleTabs = !loading && !isAdmin
+    ? tabs.filter((tab) => tab.id !== '/' && tab.path !== '/')
+    : tabs;
 
   return (
     <TabContext.Provider
       value={{
-        tabs,
+        tabs: visibleTabs,
         activeTabId,
         openTab,
         switchTab,

@@ -2,6 +2,16 @@ import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
+const getStaffLandingPath = (role) => {
+  if (role.includes('pharmacist') || role.includes('doctor') || role.includes('nurse')) {
+    return '/prescriptions/review';
+  }
+  if (role.includes('sales') || role.includes('cashier') || role.includes('attendant') || role.includes('rep')) {
+    return '/pos';
+  }
+  return '/inventory';
+};
+
 const PrivateRoute = ({ children, adminOnly = false, allowedRoles = null }) => {
   const { user, loading } = useContext(AuthContext);
 
@@ -21,7 +31,7 @@ const PrivateRoute = ({ children, adminOnly = false, allowedRoles = null }) => {
   const isAdmin = user.isAdmin || role.includes('admin') || role.includes('manager');
 
   if (adminOnly && !isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={getStaffLandingPath(role)} replace />;
   }
 
   if (allowedRoles && Array.isArray(allowedRoles) && !isAdmin) {
@@ -41,7 +51,7 @@ const PrivateRoute = ({ children, adminOnly = false, allowedRoles = null }) => {
     });
 
     if (!matches) {
-      return <Navigate to="/" replace />;
+      return <Navigate to={getStaffLandingPath(role)} replace />;
     }
   }
 

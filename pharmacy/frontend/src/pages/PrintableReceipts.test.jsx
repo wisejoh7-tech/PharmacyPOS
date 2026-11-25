@@ -14,7 +14,7 @@ const customer = {
   phone_number: '08012345678',
   address: '12 Marina Road, Lagos',
 };
-const settings = [{ shop_name: 'New Light Pharmacy', address: '99 Health Avenue, Lagos' }];
+const settings = [{ shop_name: 'New Light Health Services', address: '23 Musheshe upper Sakponba Road Benin City Edo state' }];
 
 vi.mock('../services/drugService', () => ({
   default: { getDrugs: vi.fn().mockResolvedValue({ data: [] }) },
@@ -37,7 +37,7 @@ vi.mock('../services/customerService', () => ({
   },
 }));
 vi.mock('../services/settingsService', () => ({
-  default: { getSettings: vi.fn().mockResolvedValue({ data: [{ shop_name: 'New Light Pharmacy', address: '99 Health Avenue, Lagos' }] }) },
+  default: { getSettings: vi.fn().mockResolvedValue({ data: [{ shop_name: 'New Light Health Services', address: '23 Musheshe upper Sakponba Road Benin City Edo state' }] }) },
 }));
 vi.mock('../services/posService', () => ({
   default: { createSale: vi.fn().mockResolvedValue({ data: { id: 101 } }) },
@@ -75,8 +75,8 @@ describe('printable receipt fields', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: /finalize sale/i }));
 
     await waitFor(() => {
-      expect(document.body).toHaveTextContent('New Light Pharmacy');
-      expect(document.body).toHaveTextContent('99 Health Avenue, Lagos');
+      expect(document.body).toHaveTextContent('New Light Health Services');
+      expect(document.body).toHaveTextContent('23 Musheshe upper Sakponba Road Benin City Edo state');
       expect(document.body).toHaveTextContent('Ada Attendant');
       expect(document.body).toHaveTextContent('Grace Hopper');
       expect(document.body).toHaveTextContent('08012345678');
@@ -95,8 +95,8 @@ describe('printable receipt fields', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: /finalize retail sale/i }));
 
     await waitFor(() => {
-      expect(document.body).toHaveTextContent('New Light Pharmacy');
-      expect(document.body).toHaveTextContent('99 Health Avenue, Lagos');
+      expect(document.body).toHaveTextContent('New Light Health Services');
+      expect(document.body).toHaveTextContent('23 Musheshe upper Sakponba Road Benin City Edo state');
       expect(document.body).toHaveTextContent('Ada Attendant');
       expect(document.body).toHaveTextContent('Grace Hopper');
       expect(document.body).toHaveTextContent('08012345678');

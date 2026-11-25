@@ -31,7 +31,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     fetchBranding();
   }, []);
 
-  const role = (user?.role || 'Admin').toLowerCase();
+  const role = (user?.role || '').toLowerCase();
   const isAdmin = user?.isAdmin || role.includes('admin') || role.includes('manager');
   const isSalesAttendant = role.includes('cashier') || role.includes('attendant') || (role.includes('sales') && !role.includes('rep'));
   const isSalesRep = role.includes('rep');
@@ -42,7 +42,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'CORE',
       items: [
-        { name: 'Dashboard', icon: <FaThLarge />, path: '/', roles: ['all'] },
+        { name: 'Dashboard', icon: <FaThLarge />, path: '/', roles: ['admin'] },
       ]
     },
     {

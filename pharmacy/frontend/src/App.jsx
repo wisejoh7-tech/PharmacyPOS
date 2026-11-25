@@ -96,7 +96,7 @@ function App() {
 
           {/* Protected Routes */}
           <Route path="/" element={
-            <PrivateRoute>
+            <PrivateRoute adminOnly={true}>
               <Layout>
                 <PharmacyDashboard />
               </Layout>
