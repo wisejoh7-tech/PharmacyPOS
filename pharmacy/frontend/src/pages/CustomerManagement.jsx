@@ -122,11 +122,11 @@ const CustomerManagement = () => {
                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
                     <FaUserCheck />
                  </div>
-                 <span className="text-[10px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full uppercase tracking-widest">Verified</span>
+                 <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-widest">Not tracked</span>
               </div>
               <div className="mt-2 relative z-10">
                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Recurring</p>
-                 <p className="text-sm font-black text-slate-900 tabular-nums">482</p>
+                 <p className="text-sm font-black text-slate-900 tabular-nums">0</p>
               </div>
            </div>
 
@@ -135,11 +135,11 @@ const CustomerManagement = () => {
                  <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-sm">
                     <FaIdCard />
                  </div>
-                 <span className="text-[10px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full uppercase tracking-widest">+12% Gain</span>
+                 <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-widest">Not tracked</span>
               </div>
               <div className="mt-2 relative z-10">
                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">New This Wk</p>
-                 <p className="text-sm font-black text-slate-900 tabular-nums">15</p>
+                 <p className="text-sm font-black text-slate-900 tabular-nums">0</p>
               </div>
            </div>
         </section>
