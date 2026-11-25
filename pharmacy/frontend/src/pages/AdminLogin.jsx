@@ -12,7 +12,7 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [shopName, setShopName] = useState('New Light Medicine and Store');
+  const [shopName, setShopName] = useState('New Light Health Services and Store');
 
   useEffect(() => {
     const fetchBranding = async () => {
@@ -53,11 +53,11 @@ const AdminLogin = () => {
           {/* Logo Branding Header */}
           <div className="pharmacist-logo-container">
             <div className="mortar-logo-icon">
-              <img src="/pharmacy-logo.jpeg" alt="Pharmacy" className="w-10 h-10 object-contain rounded-lg" />
+              <PharmacyLogo className="w-10 h-10 rounded-lg" />
             </div>
             <div className="brand-text-block">
-              <span className="brand-title-primary">New Light</span>
-              <span className="brand-title-secondary">Medicine and Store</span>
+              <span className="brand-title-primary">New Light Health Services</span>
+              <span className="brand-title-secondary">and Store</span>
             </div>
           </div>
 

@@ -5,6 +5,7 @@ import {
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import staffService from '../services/staffService';
+import PharmacyLogo from '../components/PharmacyLogo';
 
 const StaffRegistration = () => {
   const navigate = useNavigate();
@@ -189,14 +190,7 @@ const StaffRegistration = () => {
             <div className="bg-gradient-to-r from-blue-900 via-blue-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl flex items-center justify-between border border-blue-800/50">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 text-white">
-                  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8">
-                    <path d="M12 28 C12 28, 14 48, 32 48 C50 48, 52 28, 52 28 Z" fill="#60a5fa" />
-                    <path d="M10 26 H54 V29 H10 Z" fill="#3b82f6" />
-                    <path d="M26 48 L22 56 H42 L38 48 Z" fill="#1d4ed8" />
-                    <path d="M38 12 L48 24 L42 28 L32 16 Z" fill="#93c5fd" />
-                    <path d="M29 33 H35 V39 H29 Z" fill="white" />
-                    <path d="M30 31 H34 V41 H30 Z" fill="white" />
-                  </svg>
+                  <PharmacyLogo className="w-8 h-8 rounded-lg" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">

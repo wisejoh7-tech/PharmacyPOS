@@ -96,7 +96,7 @@ const ForgotPassword = () => {
 
                 <div className="p-3 bg-slate-50 text-center border-t border-slate-100">
                     <p className="text-[9px] font-semibold text-slate-400">
-                        New Light Medicine and Store • Security Portal
+                        New Light Health Services and Store • Security Portal
                     </p>
                 </div>
             </div>
