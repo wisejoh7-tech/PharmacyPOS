@@ -36,7 +36,7 @@ const PointOfSales = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categoriesList, setCategoriesList] = useState([]);
   const [lastScanned, setLastScanned] = useState(null);
-  const [receiptSettings, setReceiptSettings] = useState({ shop_name: 'New Light Medicine and Store', address: '' });
+  const [receiptSettings, setReceiptSettings] = useState({ shop_name: 'New Light Health Services', address: '' });
   const scanInputRef = useRef(null);
 
   useEffect(() => {

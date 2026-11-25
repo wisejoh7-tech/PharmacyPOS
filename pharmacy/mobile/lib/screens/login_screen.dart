@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.local_hospital, size: 80, color: Colors.teal),
               const SizedBox(height: 24),
               const Text(
-                'New Light Medicine and Store',
+                'New Light Health Services',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.teal),
               ),

@@ -238,7 +238,7 @@ class SystemSettingsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         try:
             if not SystemSettings.objects.exists():
-                SystemSettings.objects.create(shop_name='New Light Medicine and Store', location="St. Mary's")
+                SystemSettings.objects.create(shop_name='New Light Health Services', location="St. Mary's")
             return SystemSettings.objects.all()
         except Exception:
             return SystemSettings.objects.none()

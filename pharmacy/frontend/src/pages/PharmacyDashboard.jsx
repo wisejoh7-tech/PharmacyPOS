@@ -29,7 +29,7 @@ const PharmacyDashboard = () => {
   });
   const [lowStockDrugs, setLowStockDrugs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState({ shop_name: 'New Light Medicine and Store', location: "St. Mary's" });
+  const [settings, setSettings] = useState({ shop_name: 'New Light Health Services', location: "St. Mary's" });
 
   const fetchData = async (signal) => {
     try {
@@ -114,7 +114,7 @@ const PharmacyDashboard = () => {
           </div>
           <div>
             <h1 className="text-base font-black text-white tracking-tight uppercase font-outfit">
-              New Light Health Services and Store
+              New Light Health Services
             </h1>
           </div>
         </div>

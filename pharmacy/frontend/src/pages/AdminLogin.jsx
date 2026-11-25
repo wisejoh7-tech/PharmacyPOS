@@ -12,7 +12,7 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [shopName, setShopName] = useState('New Light Health Services and Store');
+  const [shopName, setShopName] = useState('New Light Health Services');
 
   useEffect(() => {
     const fetchBranding = async () => {

@@ -41,7 +41,7 @@ class _DrugListScreenState extends State<DrugListScreen> {
                 children: [
                   const Icon(Icons.local_hospital, color: Colors.white, size: 48),
                   const SizedBox(height: 12),
-                  const Text('New Light Medicine and Store', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Text('New Light Health Services', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),

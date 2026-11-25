@@ -2,7 +2,7 @@
   "name": "pharmacy",
   "private": true,
   "version": "1.0.0",
-  "description": "New Light Medicine and Store Management System",
+  "description": "New Light Health Services Management System",
   "author": "New Light",
   "type": "module",
   "main": "electron-main.cjs",
@@ -59,7 +59,7 @@
   },
   "build": {
     "appId": "com.newlight.pharmacy",
-    "productName": "NewLightMedicineAndStore",
+    "productName": "NewLightHealthServices",
     "icon": "build/icon.png",
     "directories": {
       "output": "dist_electron"

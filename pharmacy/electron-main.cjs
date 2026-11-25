@@ -8,7 +8,7 @@ function createWindow() {
     height: 850,
     minWidth: 900,
     minHeight: 600,
-    title: 'New Light Medicine and Store',
+    title: 'New Light Health Services',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

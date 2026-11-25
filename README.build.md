@@ -1,4 +1,4 @@
-# Building New Light Medicine and Store Multi-Platform Apps
+# Building New Light Health Services Multi-Platform Apps
 
 This guide explains how to generate the **Windows (.exe)** and **Android (.apk)** versions of the application.
 

@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'pharmacy-logo.jpeg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
       manifest: {
-        name: 'New Light Medicine and Store',
+        name: 'New Light Health Services',
         short_name: 'New Light POS',
         description: 'Pharmacy and supermarket point of sale',
         theme_color: '#059669',
