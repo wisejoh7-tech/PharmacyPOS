@@ -3,8 +3,11 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import syncService from './services/syncService';
+import { registerSW } from 'virtual:pwa-register';
 
-// Service Worker registration is handled by vite-plugin-pwa if enabled
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  registerSW({ immediate: true });
+}
 
 // Global Online/Offline Listeners
 window.addEventListener('online', () => {

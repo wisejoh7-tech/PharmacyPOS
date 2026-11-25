@@ -20,3 +20,9 @@
 - [ ] The supplied logo replaces the logo on login and is used as the Windows Electron application icon after building.
 - [ ] Staff identity is resolved for all supported login identifiers and sale creation uses the authenticated identity; backend changes are ready for deployment.
 - [ ] Receipt printing works from a signed-in checkout for both POS types.
+- [ ] After an online first load, the browser/PWA application shell opens without internet; the installed Windows Electron application also opens its packaged local shell without internet.
+- [ ] Pharmacy POS and Supermarket POS can both complete a sale from cached inventory while offline, immediately save a durable local sale/receipt snapshot, and print the receipt without depending on a live API request.
+- [ ] Both offline sale types reserve cached local stock, use unique transaction IDs, and remain in the local sync queue until the hosted API acknowledges them; network errors and server validation failures retain the pending sale and its sync error instead of discarding it.
+- [ ] When internet returns, both POS sale queues retry automatically; backend retries are idempotent, local sales are reconciled with server responses, and online sale/report totals reflect acknowledged sales without duplicate transactions or stock deductions.
+- [ ] Offline receipt settings (including the admin-configured business name/address) and previously cached inventory are usable after an online first load; the UI identifies offline/pending state.
+- [ ] Validate offline queue/database behavior and backend sale idempotency with tests/builds using temporary SQLite only; do not access or modify the live Render PostgreSQL database.

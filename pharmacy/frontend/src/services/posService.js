@@ -1,5 +1,6 @@
 import api from './api';
 import { db, addToSyncQueue } from './db';
+import { cacheSyncedSale, isTransportFailure, saveOfflineSale } from './offlineSaleService';
 
 const posService = {
   getSales: async (config = {}) => {
@@ -9,7 +10,7 @@ const posService = {
         // Update local cache: Use bulkPut to merge instead of clear() + bulkAdd()
         const sales = response.data.results || response.data;
         if (Array.isArray(sales)) {
-          await db.sales.bulkPut(sales);
+          for (const sale of sales) await cacheSyncedSale('sales', sale);
         }
         return response;
       }
@@ -22,16 +23,15 @@ const posService = {
 
   createSale: async (saleData) => {
     if (navigator.onLine) {
-      const response = await api.post('sales/', saleData);
-      await db.sales.add(response.data);
-      return response;
-    } else {
-      // Offline mode: generate temporary ID or use local DB auto-increment
-      const id = await db.sales.add({ ...saleData, date: new Date().toISOString() });
-      const offlineSale = { ...saleData, id };
-      await addToSyncQueue('CREATE', 'sales', offlineSale);
-      return { data: offlineSale, status: 201 };
+      try {
+        const response = await api.post('sales/', saleData, { timeout: 5000 });
+        await cacheSyncedSale('sales', response.data);
+        return response;
+      } catch (error) {
+        if (!isTransportFailure(error)) throw error;
+      }
     }
+    return saveOfflineSale({ salesStore: 'sales', inventoryStore: 'drugs', endpoint: 'sales', saleData });
   },
 
   createReturn: async (returnData) => {

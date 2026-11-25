@@ -113,6 +113,11 @@ class SaleViewSet(viewsets.ModelViewSet):
     serializer_class = SaleSerializer
 
     def create(self, request, *args, **kwargs):
+        transaction_id = request.data.get('transaction_id')
+        if transaction_id:
+            existing_sale = self.get_queryset().filter(transaction_id=transaction_id).first()
+            if existing_sale:
+                return Response(self.get_serializer(existing_sale).data, status=status.HTTP_200_OK)
         # Implement atomic transaction for sale and stock update
         with transaction.atomic():
             data = request.data
@@ -259,6 +264,11 @@ class SupermarketSaleViewSet(viewsets.ModelViewSet):
     serializer_class = SupermarketSaleSerializer
 
     def create(self, request, *args, **kwargs):
+        transaction_id = request.data.get('transaction_id')
+        if transaction_id:
+            existing_sale = self.get_queryset().filter(transaction_id=transaction_id).first()
+            if existing_sale:
+                return Response(self.get_serializer(existing_sale).data, status=status.HTTP_200_OK)
         with transaction.atomic():
             data = request.data
             items_data = data.pop('items', [])

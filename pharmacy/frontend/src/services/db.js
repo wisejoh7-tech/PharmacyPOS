@@ -15,6 +15,21 @@ db.version(4).stores({
   syncQueue: '++id, action, table, data, timestamp'
 });
 
+db.version(5).stores({
+  drugs: '++id, name, category, sku',
+  products: '++id, name, category',
+  categories: '++id, name, type',
+  staff: '++id, full_name, role',
+  sales: '++id, transaction_id, customer_id, total_amount, date, syncStatus',
+  supermarketSales: '++id, transaction_id, customer_id, total_amount, date, syncStatus',
+  returns: '++id, sale_id, reason, date',
+  customers: '++id, name, phone',
+  prescriptions: '++id, prescription_id, customer, status, created_at',
+  prescriptionItems: '++id, prescription_id, drug, quantity',
+  settings: 'key',
+  syncQueue: '++id, action, table, data, timestamp'
+});
+
 db.open().catch((err) => {
   console.error("Failed to open db:", err.stack || err);
 });

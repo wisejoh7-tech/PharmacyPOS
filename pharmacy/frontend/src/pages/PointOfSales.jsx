@@ -16,6 +16,8 @@ import settingsService from '../services/settingsService';
 import { AuthContext } from '../context/AuthContext';
 import CustomerSelector from '../components/CustomerSelector';
 import PharmacyLogo from '../components/PharmacyLogo';
+import OfflineStatus from '../components/OfflineStatus';
+import { createTransactionId } from '../services/transactionId';
 
 const PointOfSales = () => {
   const { user } = useContext(AuthContext);
@@ -233,7 +235,7 @@ const PointOfSales = () => {
 
     try {
       setIsCheckingOut(true);
-      const txId = "TX-" + Math.floor(Math.random() * 100000);
+      const txId = createTransactionId('TX');
       const items = cart.map(item => ({
         drug: item.id,
         quantity: item.quantity,
@@ -241,7 +243,7 @@ const PointOfSales = () => {
         subtotal: (item.unitPrice * item.quantity).toFixed(2)
       }));
 
-      await posService.createSale({
+      const saleResult = await posService.createSale({
         transaction_id: txId,
         staff: staffId,
         customer: customerId || null,
@@ -250,7 +252,7 @@ const PointOfSales = () => {
         items: items
       });
 
-      const customer = customerId ? (await customerService.getCustomer(customerId)).data : null;
+      const customer = customerId ? (await customerService.getCachedCustomer(customerId)).data : null;
       setLastSale({
         id: txId,
         pharmacist: staffList.find(s => s.id == staffId),
@@ -262,7 +264,9 @@ const PointOfSales = () => {
         date: new Date().toLocaleString()
       });
 
-      toast.success(`Transaction Completed: ${txId}`);
+      toast.success(saleResult.offline
+        ? `Saved offline: ${txId}. It will sync when internet returns.`
+        : `Transaction Completed: ${txId}`);
       clearCart();
       fetchProducts();
     } catch (error) {
@@ -278,6 +282,7 @@ const PointOfSales = () => {
 
   return (
     <div className="flex flex-col lg:flex-row h-full gap-4 animate-in fade-in duration-500 text-sm">
+      <OfflineStatus />
       <div className="flex-1 flex flex-col min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden text-xs">
         <header className="p-4 border-b border-slate-100 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">

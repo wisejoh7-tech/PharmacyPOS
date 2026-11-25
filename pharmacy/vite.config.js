@@ -8,47 +8,27 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    // VitePWA({
-    //   registerType: 'autoUpdate',
-    //   includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
-    //   manifest: {
-    //     name: 'Josiah Pharmacy Management System',
-    //     short_name: 'Pharmacy',
-    //     description: 'Josiah Pharmacy Management System',
-    //     theme_color: '#ffffff',
-    //     icons: [
-    //       {
-    //         src: 'pwa-192x192.png',
-    //         sizes: '192x192',
-    //         type: 'image/png'
-    //       },
-    //       {
-    //         src: 'pwa-512x512.png',
-    //         sizes: '512x512',
-    //         type: 'image/png'
-    //       }
-    //     ]
-    //   },
-    //   workbox: {
-    //     globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-    //     runtimeCaching: [
-    //       {
-    //         urlPattern: /^https:\/\/api\.*/i,
-    //         handler: 'NetworkFirst',
-    //         options: {
-    //           cacheName: 'api-cache',
-    //           expiration: {
-    //             maxEntries: 50,
-    //             maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
-    //           },
-    //           cacheableResponse: {
-    //             statuses: [0, 200]
-    //           }
-    //         }
-    //       }
-    //     ]
-    //   }
-    // })
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'pharmacy-logo.jpeg', 'pwa-icon-192.png', 'pwa-icon-512.png'],
+      manifest: {
+        name: 'New Light Medicine and Store',
+        short_name: 'New Light POS',
+        description: 'Pharmacy and supermarket point of sale',
+        theme_color: '#059669',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: './',
+        icons: [
+          { src: 'pwa-icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-icon-512.png', sizes: '512x512', type: 'image/png' }
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg}'],
+        navigateFallbackDenylist: [/^\/api\//]
+      }
+    })
   ],
   base: './',
   build: {

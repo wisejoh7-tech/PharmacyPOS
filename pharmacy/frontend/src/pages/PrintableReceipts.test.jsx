@@ -32,6 +32,7 @@ vi.mock('../services/customerService', () => ({
   default: {
     getCustomers: vi.fn().mockResolvedValue({ data: [{ id: 7, first_name: 'Grace', last_name: 'Hopper', phone_number: '08012345678', address: '12 Marina Road, Lagos' }] }),
     getCustomer: vi.fn().mockResolvedValue({ data: { id: 7, first_name: 'Grace', last_name: 'Hopper', phone_number: '08012345678', address: '12 Marina Road, Lagos' } }),
+    getCachedCustomer: vi.fn().mockResolvedValue({ data: { id: 7, first_name: 'Grace', last_name: 'Hopper', phone_number: '08012345678', address: '12 Marina Road, Lagos' } }),
     createCustomer: vi.fn(),
   },
 }));

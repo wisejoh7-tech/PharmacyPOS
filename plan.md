@@ -15,6 +15,14 @@
 - `pharmacy/frontend/src/`: React routes, role-aware navigation, POS screens, customer registration, and branding.
 - `pharmacy/public/` and `pharmacy/build/`: web favicon/logo and Electron Windows icon assets.
 
+## Offline POS architecture
+
+- Enable the existing Vite PWA plugin to precache the application shell and expose the app manifest so a browser-installed PWA can reopen after the first successful online load.
+- Use the shared Dexie/IndexedDB database in both the browser and Electron renderer for cached pharmacy/supermarket catalogs, receipt settings, local sale records, and a durable FIFO sync queue. Checkout must finish and render/print its receipt from the saved sale snapshot without waiting for API or customer lookups.
+- Generate high-entropy transaction IDs and make both Django sale-create endpoints idempotent using the existing unique transaction ID so an accepted request whose response was lost can be safely retried without creating a duplicate sale or stock deduction.
+- On reconnection, retry queued pharmacy/supermarket sales in order, update each local record with server acknowledgement, preserve failures with an actionable error, and refresh cloud totals/catalog data on the next normal API reads.
+- The existing `OFFLINE_MODE=true` Django configuration remains SQLite-capable. Electron currently packages only the frontend; this plan does not claim a bundled local Django server or a separate SQLite-to-cloud replication engine. The common POS offline transaction store for both browser and Electron is IndexedDB.
+
 ## Design decisions
 
 - **Design movement:** Clean clinical retail workstation.

@@ -15,6 +15,8 @@ import settingsService from '../services/settingsService';
 import { AuthContext } from '../context/AuthContext';
 import CustomerSelector from '../components/CustomerSelector';
 import PharmacyLogo from '../components/PharmacyLogo';
+import OfflineStatus from '../components/OfflineStatus';
+import { createTransactionId } from '../services/transactionId';
 
 const SupermarketPOS = () => {
   const { user } = useContext(AuthContext);
@@ -197,7 +199,7 @@ const SupermarketPOS = () => {
      
      try {
        setIsCheckingOut(true);
-       const txId = "STX-" + Math.floor(Math.random() * 100000);
+       const txId = createTransactionId('STX');
 
         const items = cart.map(item => ({
            product: item.id,
@@ -206,7 +208,7 @@ const SupermarketPOS = () => {
            subtotal: (item.unitPrice * item.quantity).toFixed(2)
         }));
 
-        await supermarketSaleService.processSale({
+        const saleResult = await supermarketSaleService.processSale({
            transaction_id: txId,
            staff: staffId,
            customer: customerId || null,
@@ -215,7 +217,7 @@ const SupermarketPOS = () => {
            items: items
         });
        
-        const customer = customerId ? (await customerService.getCustomer(customerId)).data : null;
+        const customer = customerId ? (await customerService.getCachedCustomer(customerId)).data : null;
         setLastSale({
            id: txId,
            cashier: staffList.find(s => s.id == staffId),
@@ -226,7 +228,9 @@ const SupermarketPOS = () => {
            date: new Date().toLocaleString()
         });
 
-       toast.success(`Retail Transaction Completed: ${txId}`);
+       toast.success(saleResult.offline
+         ? `Saved offline: ${txId}. It will sync when internet returns.`
+         : `Retail Transaction Completed: ${txId}`);
        clearCart();
        fetchProducts();
         if (autoPrint) {
@@ -270,6 +274,7 @@ const SupermarketPOS = () => {
 
   return (
     <div className="flex flex-col lg:flex-row h-full gap-4 animate-in fade-in duration-500 text-sm">
+      <OfflineStatus />
       
       {/* Search and Product Column */}
       <div className="flex-1 flex flex-col min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden text-xs">

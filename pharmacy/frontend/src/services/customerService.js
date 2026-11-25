@@ -28,7 +28,13 @@ const customerService = {
     } catch (error) {
       console.error("Network failed", error);
     }
-    const customer = await db.customers.get(id);
+    const customer = await db.customers.get(Number(id));
+    return { data: customer };
+  },
+
+  getCachedCustomer: async (id) => {
+    const numericId = Number(id);
+    const customer = Number.isFinite(numericId) ? await db.customers.get(numericId) : await db.customers.get(id);
     return { data: customer };
   },
 
