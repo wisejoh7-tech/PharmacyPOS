@@ -41,6 +41,13 @@ const StaffManagement = () => {
     }
   };
 
+  const hasRoleMarker = (staff, markers) => {
+    const role = String(staff.role || '').toLowerCase().replace(/[_-]+/g, ' ');
+    return markers.some((marker) => role.includes(marker));
+  };
+  const attendanceCount = staffData.filter((staff) => hasRoleMarker(staff, ['attendance', 'attendant'])).length;
+  const clinicianCount = staffData.filter((staff) => hasRoleMarker(staff, ['clinician', 'pharmacist', 'doctor', 'nurse'])).length;
+
   const handleDelete = async (staffMember) => {
     const staffName = staffMember.full_name || staffMember.name || 'this staff member';
     if (window.confirm(`Are you sure you want to delete ${staffName}? This action cannot be undone.`)) {
@@ -100,8 +107,8 @@ const StaffManagement = () => {
                <FaCalendarAlt />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Attendance</p>
-              <p className="text-sm font-black text-slate-900">8</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Registered Attendance Staff</p>
+              <p className="text-sm font-black text-slate-900">{attendanceCount}</p>
             </div>
           </div>
 
@@ -110,8 +117,8 @@ const StaffManagement = () => {
                <FaUserShield />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Clinicians</p>
-              <p className="text-sm font-black text-slate-900">12</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Registered Clinicians</p>
+              <p className="text-sm font-black text-slate-900">{clinicianCount}</p>
             </div>
           </div>
         </section>
